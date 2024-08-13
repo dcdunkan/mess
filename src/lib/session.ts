@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { CookieSessionData, UserSchema } from "./types";
+import { CookieSessionData, Resident, UserSchema } from "./types";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
 
 const JWT_SIGN_SECRET = process.env.JWT_SIGN_SECRET;
@@ -10,15 +10,13 @@ if (JWT_SIGN_SECRET == null) {
 }
 const JWT_SIGN_KEY = new TextEncoder().encode(JWT_SIGN_SECRET);
 
-export async function getSessionData<U extends UserSchema = UserSchema>() {
+export async function getSessionData<U extends UserSchema>() {
     const encryptedSessionData = cookies().get("session")?.value;
-    return encryptedSessionData
-        ? ((await decrypt(encryptedSessionData)) as CookieSessionData<U>)
-        : null;
+    return encryptedSessionData ? ((await decrypt(encryptedSessionData)) as CookieSessionData<U>) : null;
 }
 
-export async function encrypt(
-    payload: JWTPayload & CookieSessionData,
+export async function encrypt<U extends UserSchema>(
+    payload: JWTPayload & CookieSessionData<U>,
     expiry: Date
 ): Promise<string> {
     return await new SignJWT(payload)

@@ -5,8 +5,6 @@ import { Checkbox } from "@nextui-org/react";
 import Link from "next/link";
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { HostelSelector } from "../ui/HostelSelector";
-
 export default function LoginPage() {
     const [message, dispatch] = useFormState(login, undefined);
     const [isAdminLogin, setIsAdminLogin] = useState(false);
@@ -59,19 +57,10 @@ export default function LoginPage() {
                             placeholder="Password"
                         />
                     </div>
-                    <input
-                        type="checkbox"
-                        hidden
-                        checked={isAdminLogin}
-                        name="is-admin"
-                        id="is-admin"
-                        readOnly
-                    />
+                    <input type="checkbox" hidden checked={isAdminLogin} name="is-admin" id="is-admin" readOnly />
                     <Checkbox onValueChange={setIsAdminLogin} isSelected={isAdminLogin}>
                         Login as admin
                     </Checkbox>
-
-                    {isAdminLogin && <HostelSelector onChange={() => false} />}
 
                     {message && <p className="font-bold text-red-700">{message}</p>}
 

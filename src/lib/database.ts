@@ -7,12 +7,12 @@ import {
     MarkingsSchema,
     UserSchema,
     MealStatus,
-    DayPreference,
-    UserType,
     Hostel,
     MealType,
-    MonthData,
+    UnorganizedMonthData,
     DayData,
+    DatabaseMetadata,
+    Optional,
 } from "./types";
 import { hash, compare } from "bcrypt";
 import { ReasonedError } from "./utilities";
@@ -28,19 +28,18 @@ const connection = client.connect();
 const database = client.db("hostel");
 
 const users = database.collection<UserSchema>("users");
+const metadata = database.collection<DatabaseMetadata>("metadata");
 const markings = database.collection<MarkingsSchema>("markings");
 
-// export async function reg() {
-//     const hashedPassword = await hash("abcdef", 10);
-//     const result = await users.insertOne({
-//         type: "manager",
-//         name: "Annexe Manager",
-//         login: "annexe-manager",
-//         password: hashedPassword,
-//         hostel: "annexe-v",
-//     });
-//     console.log("registered");
-// }
+export async function getMetadata(): Promise<DatabaseMetadata> {
+    const data = await metadata.findOne({ metadata: true }, { projection: { _id: 0 } });
+    if (data == null) return { hostels: {} };
+    return data;
+}
+
+export async function updateHostels(hostels: Record<string, string>) {
+    await metadata.updateOne({ metadata: true }, { $set: { hostels } }, { upsert: true });
+}
 
 export async function registerResident(resident: Resident) {
     await connection;
@@ -62,22 +61,13 @@ export async function registerResident(resident: Resident) {
     }
 }
 
-export async function getUser(details: {
-    login: string;
-    password: string;
-    type: UserType;
-    hostel?: Hostel;
-}): Promise<WithId<UserSchema>> {
+export async function getResident(details: { admission: string; password: string }): Promise<WithId<Resident>> {
     await connection;
-    const user = await users.findOne(
-        details.type === "manager"
-            ? { type: details.type, login: details.login, hostel: details.hostel }
-            : { type: details.type, admission: details.login }
-    );
+    const user = await users.findOne({ type: "resident", admission: details.admission });
     if (user == null) throw new ReasonedError("Couldn't find a resident with the credentials");
     const match = await compare(details.password, user.password);
     if (!match) throw new ReasonedError("Wrong credentials");
-    return user;
+    return user as WithId<Resident>;
 }
 
 // TODO: overload for monthly/day
@@ -102,88 +92,30 @@ export async function getResidentMarkings(
     return result;
 }
 
-export async function getNegativeDayCount(
-    filters: {
-        date: SelectedDate;
-        hostel: Hostel;
-    },
-    total: number
-): Promise<DayData> {
-    await connection;
-    const collectiveDayData = await markings
-        .aggregate<{ day: number; data: MealStatus[] }>([
-            {
-                $match: {
-                    "resident.hostel": filters.hostel,
-                    "date.year": filters.date.year,
-                    "date.month": filters.date.month,
-                    "date.day": filters.date.day,
-                },
-            },
-            { $group: { _id: "$date.day", data: { $push: "$meals" } } },
-            { $project: { _id: 0, data: 1, day: "$_id" } },
-        ])
-        .toArray();
-    if (collectiveDayData.length > 1) {
-        throw new ReasonedError("Unexpected situtation occurred.");
-    }
-    return (
-        transformMonthlyData(collectiveDayData, total)[filters.date.day] ??
-        prepareDefaultMealCount(total)
-    );
+export async function getTotalResidents(hostel: string) {
+    return await users.countDocuments({ type: "resident", hostel });
 }
 
-export async function getResidentCount(hostel: Hostel) {
-    return await users.countDocuments({ type: "resident", hostel: hostel });
-}
-
-export async function getNegativeMonthlyCount(
-    filters: {
-        date: Omit<SelectedDate, "day">;
-        hostel: Hostel;
-    },
-    total: number
-): Promise<MonthData> {
+export async function getNegativeMonthlyCount(filters: {
+    date: Optional<SelectedDate, "day">;
+    hostel: string;
+}): Promise<UnorganizedMonthData> {
     await connection;
     const monthlyRecordedData = await markings
-        .aggregate<{ day: number; data: MealStatus[] }>([
+        .aggregate<UnorganizedMonthData[number]>([
             {
                 $match: {
                     "resident.hostel": filters.hostel,
                     "date.year": filters.date.year,
                     "date.month": filters.date.month,
+                    ...(typeof filters.date.day === "number" ? { "date.day": filters.date.day } : {}),
                 },
             },
             { $group: { _id: "$date.day", data: { $push: "$meals" } } },
             { $project: { _id: 0, data: 1, day: "$_id" } },
         ])
         .toArray();
-    return transformMonthlyData(monthlyRecordedData, total);
-}
-
-function prepareDefaultMealCount(defaultCount: number) {
-    return MEAL_TYPES.reduce(
-        (prev, meal) => ({ ...prev, [meal]: defaultCount }),
-        {} as Record<MealType, number>
-    );
-}
-
-function transformMonthlyData(
-    monthlyData: { day: number; data: MealStatus[] }[],
-    totalResidents: number
-) {
-    return monthlyData.reduce((prev, dayData) => {
-        return {
-            ...prev,
-            [dayData.day]: dayData.data.reduce((prev, status) => {
-                for (const _meal in status) {
-                    const meal = _meal as MealType;
-                    prev[meal] -= status[meal] ? 0 : 1;
-                }
-                return prev;
-            }, prepareDefaultMealCount(totalResidents)),
-        };
-    }, {} as Record<number, Record<MealType, number>>);
+    return monthlyRecordedData;
 }
 
 export async function updateResidentMarkings(
@@ -192,9 +124,5 @@ export async function updateResidentMarkings(
     updated: MealStatus
 ) {
     await connection;
-    await markings.updateOne(
-        { date, resident },
-        { $set: { date, resident, meals: updated } },
-        { upsert: true }
-    );
+    await markings.updateOne({ date, resident }, { $set: { date, resident, meals: updated } }, { upsert: true });
 }

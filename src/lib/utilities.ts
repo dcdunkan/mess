@@ -34,8 +34,10 @@ export function getMonthInfo(year: number, month: number): MonthInfo {
 
 export function userRedirectPath(type: UserType) {
     switch (type) {
+        case "superuser":
+            return "/superuser";
         case "manager":
-            return "/manager/dashboard";
+            return "/manager";
         case "resident":
         default:
             return "/";
@@ -74,4 +76,27 @@ export function validateResidentInput(fields: ResidentInput) {
         ok: errors.length > 0 ? false : true,
         errors,
     };
+}
+
+export function prepareDefaultMealCount(defaultCount: number) {
+    return MEAL_TYPES.reduce((prev, meal) => ({ ...prev, [meal]: defaultCount }), {} as Record<MealType, number>);
+}
+
+export function organizeMonthlyData(monthlyData: { day: number; data: MealStatus[] }[]) {
+    return monthlyData.reduce((prev, dayData) => {
+        return {
+            ...prev,
+            [dayData.day]: organizeDayData(dayData),
+        };
+    }, {} as Record<number, Record<MealType, number>>);
+}
+
+export function organizeDayData({ data }: { day: number; data: MealStatus[] }) {
+    return data.reduce((prev, status) => {
+        for (const _meal in status) {
+            const meal = _meal as MealType;
+            prev[meal] += status[meal] ? 0 : 1;
+        }
+        return prev;
+    }, prepareDefaultMealCount(0));
 }

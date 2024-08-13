@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { decrypt, encrypt } from "./lib/session";
 import { WEEK } from "./lib/constants";
-import { UserSchema, UserType } from "./lib/types";
 import { userRedirectPath } from "./lib/utilities";
 
 export async function middleware(request: NextRequest) {

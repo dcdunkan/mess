@@ -44,16 +44,16 @@ export default function HomePage(props: PageProps) {
                 <div>
                     <div className="flex place-items-center justify-between select-none my-4">
                         <h1 className="font-bold text-4xl">Hi, {props.sessionData.user.name}!</h1>
-                        <div className="text-base">
-                            <div className="border-2 border-black px-2 py-1 hover:bg-black hover:text-white">
-                                <Link href={"/logout"}>Logout</Link>
+                        <Link href={"/logout"}>
+                            <div className="border-2 border-black px-2 py-1 hover:bg-black hover:text-white text-base">
+                                Logout
                             </div>
-                        </div>
+                        </Link>
                     </div>
                     <p className="text-justify text-pretty">
-                        This is where you can opt-out from the future meals, if you prefer not to
-                        eat from the hostel mess. Individual meals can also be opted-out from to
-                        reduce food wastage. Please do not attend the mess if you have opted-out.
+                        This is where you can opt-out from the future meals, if you prefer not to eat from the hostel
+                        mess. Individual meals can also be opted-out from to reduce food wastage. Please do not attend
+                        the mess if you have opted-out.
                     </p>
                 </div>
 
@@ -138,9 +138,7 @@ export default function HomePage(props: PageProps) {
                             </span>
                         </div>
                     </div>
-                    <p className="">
-                        Click a date to adjust your breakfast, lunch, or dinner preferences.
-                    </p>
+                    <p className="">Click a date to adjust your breakfast, lunch, or dinner preferences.</p>
                     {!isCalendarReady && <div className="text-center">{calendarStatus}</div>}
                     {isCalendarReady && (
                         <CalendarView
@@ -161,12 +159,8 @@ export default function HomePage(props: PageProps) {
                     <Link href={"/menu"}>
                         <div className="flex justify-between place-items-center p-6 border-black border bg-stone-100 hover:bg-stone-50 transition-all">
                             <div>
-                                <div className="font-semibold text-xl">
-                                    🍲 Checkout the food menu!
-                                </div>
-                                <div className="text-lg">
-                                    ...and make suggestions or complaints.
-                                </div>
+                                <div className="font-semibold text-xl">🍲 Checkout the food menu!</div>
+                                <div className="text-lg">...and make suggestions or complaints.</div>
                             </div>
                             <div className="text-4xl">&rarr;</div>
                         </div>

@@ -1,14 +1,14 @@
 "use server";
 
-import { getUser, registerResident } from "@/lib/database";
-import { Hostel, UserType } from "@/lib/types";
-import { HOSTELS, WEEK } from "@/lib/constants";
+import { getResident, registerResident } from "@/lib/database";
+import { Hostel, Manager, Resident, Superuser, UserType } from "@/lib/types";
+import { WEEK } from "@/lib/constants";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReasonedError, userRedirectPath } from "./lib/utilities";
 import { encrypt } from "./lib/session";
 
-export async function register(prevState: unknown, formData: FormData) {
+export async function register(_: unknown, formData: FormData) {
     try {
         const name = formData.get("full-name")?.toString();
         const admission = formData.get("admission-no")?.toString();
@@ -33,45 +33,73 @@ export async function register(prevState: unknown, formData: FormData) {
     }
 }
 
-export async function login(prevState: unknown, formData: FormData) {
+export async function login(_: unknown, formData: FormData) {
     try {
         const loginField = formData.get("login")?.toString();
         const passwordField = formData.get("password")?.toString();
-        const hostelField = formData.get("hostel")?.toString();
-        const isAdminField = formData.get("is-admin");
-
-        const isAdminLogin =
-            typeof hostelField === "string" &&
-            // hostelField in HOSTELS &&
-            typeof isAdminField === "string" &&
-            isAdminField != null &&
-            isAdminField === "on";
-
-        const loginType: UserType = isAdminLogin ? "manager" : "resident";
-
-        if (loginField == null || passwordField == null) {
+        if (typeof loginField !== "string" || typeof passwordField !== "string") {
             throw new ReasonedError("Invalid credentials");
         }
+        const isAdminField = formData.get("is-admin");
 
-        const user = await getUser({
-            type: loginType,
-            login: loginField,
-            hostel: hostelField,
-            password: passwordField,
-        });
-        const expires = new Date(Date.now() + 2 * WEEK);
-        const session = await encrypt(
-            {
-                user: {
-                    _id: user._id.toString(),
-                    type: user.type,
-                    name: user.name,
-                    hostel: user.hostel,
+        const isAdminLoginToggled = typeof isAdminField === "string" && isAdminField != null && isAdminField === "on";
+        const loginType: UserType = isAdminLoginToggled
+            ? loginField === process.env.SUPERUSER_LOGIN && passwordField === process.env.SUPERUSER_PASSWORD
+                ? "superuser"
+                : loginField === process.env.MANAGER_LOGIN && passwordField === process.env.MANAGER_PASSWORD
+                ? "manager"
+                : "resident"
+            : "resident";
+
+        const expires = new Date(Date.now() + 1 * WEEK);
+        let session: string;
+
+        if (loginType === "superuser") {
+            session = await encrypt<Superuser>(
+                {
+                    user: {
+                        _id: "superuser",
+                        type: "superuser",
+                        name: "Superuser",
+                    },
+                    expires: expires,
                 },
-                expires: expires,
-            },
-            expires
-        );
+                expires
+            );
+        } else if (loginType === "manager") {
+            session = await encrypt<Manager>(
+                {
+                    user: {
+                        _id: "manager",
+                        type: "manager",
+                        name: "Manager",
+                        login: "manager",
+                    },
+                    expires: expires,
+                },
+                expires
+            );
+        } else if (loginType === "resident") {
+            const user = await getResident({
+                admission: loginField,
+                password: passwordField,
+            });
+            session = await encrypt<Resident>(
+                {
+                    user: {
+                        _id: user._id.toString(),
+                        type: "resident",
+                        name: user.name,
+                        hostel: user.hostel,
+                    },
+                    expires: expires,
+                },
+                expires
+            );
+        } else {
+            throw new ReasonedError("Something went wrong.");
+        }
+
         cookies().set("session", session, {
             expires,
             httpOnly: true,

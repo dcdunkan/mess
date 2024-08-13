@@ -7,6 +7,12 @@ export type Hostel = StringWithSuggestions<keyof typeof HOSTELS>;
 export type MealType = (typeof MEAL_TYPES)[number];
 export type MealStatus = { [x in MealType]: boolean };
 
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+
+export interface DatabaseMetadata {
+    hostels: Record<string, string>;
+}
+
 // USERS
 export type UserType = "resident" | "manager" | "superuser";
 export type UserSchema = Resident | Manager | Superuser;
@@ -23,12 +29,10 @@ export interface Resident extends BaseUserSchema {
 export interface Manager extends BaseUserSchema {
     type: "manager";
     login: string;
-    hostel: Hostel;
 }
-export interface Superuser extends BaseUserSchema {
+export type Superuser = BaseUserSchema & {
     type: "superuser";
-    hostel: null;
-}
+};
 export interface CookieSessionData<U extends UserSchema = UserSchema> {
     user: Omit<U, "password" | "admission"> & { _id: string };
     expires: Date;
@@ -48,7 +52,7 @@ export type DayPreference = {
     meals: MealStatus;
 };
 export type DayData = Record<MealType, number>;
-export type MonthData = Record<number, DayData>;
+export type UnorganizedMonthData = { day: number; data: MealStatus[] }[];
 
 // UTILITY TYPES
 export interface SelectedDate {
