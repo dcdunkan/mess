@@ -1,11 +1,5 @@
 import { MealType } from "./types";
 
-export const HOSTELS = {
-    trust: "Trust Hostel",
-    "annexe-v": "Annexe V",
-    "golden-jubilee": "Golden Jubilee",
-} as const;
-
 export const SECOND = 1000;
 export const MINUTE = 60 * SECOND;
 export const HOUR = 60 * MINUTE;

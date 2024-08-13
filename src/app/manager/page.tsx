@@ -1,5 +1,5 @@
 import { getMetadata } from "@/lib/database";
-import { ManagerDashboardPage } from "./ManagerDashboard";
+import { ManagerDashboardPage } from "./Manager";
 import { getSessionData } from "@/lib/session";
 import { Manager } from "@/lib/types";
 import { redirect } from "next/navigation";

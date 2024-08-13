@@ -5,6 +5,7 @@ import { Checkbox } from "@nextui-org/react";
 import Link from "next/link";
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
+
 export default function LoginPage() {
     const [message, dispatch] = useFormState(login, undefined);
     const [isAdminLogin, setIsAdminLogin] = useState(false);

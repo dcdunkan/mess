@@ -1,7 +1,7 @@
 "use server";
 
 import { getResident, registerResident } from "@/lib/database";
-import { Hostel, Manager, Resident, Superuser, UserType } from "@/lib/types";
+import { Manager, Resident, Superuser, UserType } from "@/lib/types";
 import { WEEK } from "@/lib/constants";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -13,7 +13,7 @@ export async function register(_: unknown, formData: FormData) {
         const name = formData.get("full-name")?.toString();
         const admission = formData.get("admission-no")?.toString();
         const password = formData.get("password")?.toString();
-        const hostel = formData.get("hostel")?.toString() as Hostel;
+        const hostel = formData.get("hostel")?.toString();
         if (name == null || admission == null || password == null || hostel == null) {
             throw new ReasonedError("Invalid form data");
         }

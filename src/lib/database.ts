@@ -7,16 +7,12 @@ import {
     MarkingsSchema,
     UserSchema,
     MealStatus,
-    Hostel,
-    MealType,
     UnorganizedMonthData,
-    DayData,
     DatabaseMetadata,
     Optional,
 } from "./types";
 import { hash, compare } from "bcrypt";
 import { ReasonedError } from "./utilities";
-import { MEAL_TYPES } from "./constants";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (MONGODB_URI == null) {

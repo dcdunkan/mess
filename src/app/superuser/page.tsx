@@ -1,6 +1,6 @@
 import { getSessionData } from "@/lib/session";
 import { SuperuserPage } from "./SuperuserPage";
-import { Manager, Superuser } from "@/lib/types";
+import { Superuser } from "@/lib/types";
 import { redirect } from "next/navigation";
 import { userRedirectPath } from "@/lib/utilities";
 import { getMetadata } from "@/lib/database";

@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { CookieSessionData, Resident, UserSchema } from "./types";
+import { CookieSessionData, UserSchema } from "./types";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
 
 const JWT_SIGN_SECRET = process.env.JWT_SIGN_SECRET;

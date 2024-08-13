@@ -1,4 +1,4 @@
-import { HOSTELS, MEAL_TYPES } from "./constants";
+import { MEAL_TYPES } from "./constants";
 import { MealStatus, MealType, MonthInfo, ResidentInput, UserType } from "./types";
 
 export class ReasonedError extends Error {
@@ -44,7 +44,7 @@ export function userRedirectPath(type: UserType) {
     }
 }
 
-export function validateResidentInput(fields: ResidentInput) {
+export function validateResidentInput(fields: ResidentInput, options: { hostels: Record<string, string> }) {
     const errors: string[] = [];
     if (typeof fields.name !== "string" || fields.name.trim().length == 0) {
         errors.push("Invalid name");
@@ -69,7 +69,7 @@ export function validateResidentInput(fields: ResidentInput) {
     if (fields.password.length > 32) {
         errors.push("Password must be at most 32 characters long");
     }
-    if (!(fields.hostel in HOSTELS)) {
+    if (!(fields.hostel in options.hostels)) {
         errors.push("Invalid hostel name");
     }
     return {

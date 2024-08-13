@@ -1,9 +1,6 @@
-import { HOSTELS, MEAL_TYPES } from "./constants";
-
-type StringWithSuggestions<S extends string> = (string & Record<never, never>) | S;
+import { MEAL_TYPES } from "./constants";
 
 // GENERAL
-export type Hostel = StringWithSuggestions<keyof typeof HOSTELS>;
 export type MealType = (typeof MEAL_TYPES)[number];
 export type MealStatus = { [x in MealType]: boolean };
 
@@ -24,7 +21,7 @@ export interface BaseUserSchema {
 export interface Resident extends BaseUserSchema {
     type: "resident";
     admission: string;
-    hostel: Hostel;
+    hostel: string;
 }
 export interface Manager extends BaseUserSchema {
     type: "manager";

@@ -1,7 +1,5 @@
 import clsx from "clsx";
 import { SelectedMonth, MonthInfo, DayPreference, MealType } from "../../lib/types";
-import toast from "react-hot-toast";
-import { hasOptedIn } from "@/lib/utilities";
 import { MEAL_TYPES } from "@/lib/constants";
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -92,15 +90,12 @@ function CalendarWeek({
 
         const preference = monthlyPreferences.find(
             ({ date }) =>
-                date.day === thisDay &&
-                date.month === selectedMonth.monthIndex &&
-                date.year === selectedMonth.year
+                date.day === thisDay && date.month === selectedMonth.monthIndex && date.year === selectedMonth.year
         );
         const preferredMealCount =
             preference == null
                 ? MEAL_TYPES.length
-                : Object.keys(preference.meals).filter((meal) => preference.meals[meal as MealType])
-                      .length;
+                : Object.keys(preference.meals).filter((meal) => preference.meals[meal as MealType]).length;
         const preferenceLevel = (preferredMealCount / MEAL_TYPES.length) * 100;
 
         return (
@@ -117,10 +112,7 @@ function CalendarWeek({
                     "bg-red-100": preferenceLevel >= 60 && preferenceLevel < 100,
                 })}
             >
-                <button
-                    className="size-full py-3 sm:py-4"
-                    onClick={() => onDateSelected(thisDate, { isPastDay })}
-                >
+                <button className="size-full py-3 sm:py-4" onClick={() => onDateSelected(thisDate, { isPastDay })}>
                     {thisDay}
                 </button>
             </td>

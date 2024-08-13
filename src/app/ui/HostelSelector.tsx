@@ -1,7 +1,7 @@
-import { HOSTELS } from "@/lib/constants";
 import { ChangeEventHandler } from "react";
 
 interface HostelSelectorProps {
+    hostels: Record<string, string>;
     onChange: ChangeEventHandler<HTMLSelectElement>;
 }
 
@@ -18,7 +18,7 @@ export function HostelSelector(props: HostelSelectorProps) {
             <option disabled aria-disabled hidden value="null">
                 Select hostel
             </option>
-            {Object.entries(HOSTELS).map(([id, name]) => {
+            {Object.entries(props.hostels).map(([id, name]) => {
                 return (
                     <option key={id} value={id}>
                         {name}
