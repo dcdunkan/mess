@@ -28,12 +28,14 @@ const metadata = database.collection<DatabaseMetadata>("metadata");
 const markings = database.collection<MarkingsSchema>("markings");
 
 export async function getMetadata(): Promise<DatabaseMetadata> {
+    await connection;
     const data = await metadata.findOne({ metadata: true }, { projection: { _id: 0 } });
     if (data == null) return { hostels: {} };
     return data;
 }
 
 export async function updateHostels(hostels: Record<string, string>) {
+    await connection;
     await metadata.updateOne({ metadata: true }, { $set: { hostels } }, { upsert: true });
 }
 
@@ -89,6 +91,7 @@ export async function getResidentMarkings(
 }
 
 export async function getTotalResidents(hostel: string) {
+    await connection;
     return await users.countDocuments({ type: "resident", hostel });
 }
 
