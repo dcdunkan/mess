@@ -20,7 +20,6 @@ if (MONGODB_URI == null) {
 }
 
 const client = new MongoClient(MONGODB_URI);
-const connection = client.connect();
 const database = client.db("hostel");
 
 const users = database.collection<UserSchema>("users");
@@ -28,19 +27,19 @@ const metadata = database.collection<DatabaseMetadata>("metadata");
 const markings = database.collection<MarkingsSchema>("markings");
 
 export async function getMetadata(): Promise<DatabaseMetadata> {
-    await connection;
+    await client.connect();
     const data = await metadata.findOne({ metadata: true }, { projection: { _id: 0 } });
     if (data == null) return { hostels: {} };
     return data;
 }
 
 export async function updateHostels(hostels: Record<string, string>) {
-    await connection;
+    await client.connect();
     await metadata.updateOne({ metadata: true }, { $set: { hostels } }, { upsert: true });
 }
 
 export async function registerResident(resident: Resident) {
-    await connection;
+    await client.connect();
     if ((await users.findOne({ admission: resident.admission })) != null) {
         throw new ReasonedError("Resident with the same admission number already exists");
     }
@@ -60,7 +59,7 @@ export async function registerResident(resident: Resident) {
 }
 
 export async function getResident(details: { admission: string; password: string }): Promise<WithId<Resident>> {
-    await connection;
+    await client.connect();
     const user = await users.findOne({ type: "resident", admission: details.admission });
     if (user == null) throw new ReasonedError("Couldn't find a resident with the credentials");
     const match = await compare(details.password, user.password);
@@ -73,7 +72,7 @@ export async function getResidentMarkings(
     date: Partial<SelectedDate>,
     resident: { id: string; hostel: string }
 ): Promise<{ date: SelectedDate; meals: MealStatus }[]> {
-    await connection;
+    await client.connect();
     const result = await markings
         .find(
             {
@@ -91,7 +90,7 @@ export async function getResidentMarkings(
 }
 
 export async function getTotalResidents(hostel: string) {
-    await connection;
+    await client.connect();
     return await users.countDocuments({ type: "resident", hostel });
 }
 
@@ -99,7 +98,7 @@ export async function getNegativeMonthlyCount(filters: {
     date: Optional<SelectedDate, "day">;
     hostel: string;
 }): Promise<UnorganizedMonthData> {
-    await connection;
+    await client.connect();
     const monthlyRecordedData = await markings
         .aggregate<UnorganizedMonthData[number]>([
             {
@@ -122,6 +121,6 @@ export async function updateResidentMarkings(
     resident: { id: string; hostel: string },
     updated: MealStatus
 ) {
-    await connection;
+    await client.connect();
     await markings.updateOne({ date, resident }, { $set: { date, resident, meals: updated } }, { upsert: true });
 }

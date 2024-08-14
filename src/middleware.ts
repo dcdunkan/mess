@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
 
     if (session != null) {
         try {
-            const expires = new Date(Date.now() + 2 * WEEK);
+            const expires = new Date(Date.now() + 1 * WEEK);
             const parsed = { ...(await decrypt(session)), expires };
 
             const response = ["/login", "/register"].includes(request.nextUrl.pathname)
