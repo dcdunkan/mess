@@ -30,10 +30,7 @@ export interface Manager extends BaseUserSchema {
 export type Superuser = BaseUserSchema & {
     type: "superuser";
 };
-export interface CookieSessionData<U extends UserSchema = UserSchema> {
-    user: Omit<U, "password" | "admission"> & { _id: string };
-    expires: Date;
-}
+export type CookieSessionData<U extends UserSchema = UserSchema> = Omit<U, "password" | "admission"> & { _id: string };
 
 // MARKINGS
 export type MarkingsSchema = {

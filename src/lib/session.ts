@@ -10,11 +10,6 @@ if (JWT_SIGN_SECRET == null) {
 }
 const JWT_SIGN_KEY = new TextEncoder().encode(JWT_SIGN_SECRET);
 
-export async function getSessionData<U extends UserSchema>() {
-    const encryptedSessionData = cookies().get("session")?.value;
-    return encryptedSessionData ? ((await decrypt(encryptedSessionData)) as CookieSessionData<U>) : null;
-}
-
 export async function encrypt<U extends UserSchema>(
     payload: JWTPayload & CookieSessionData<U>,
     expiry: Date
@@ -26,7 +21,7 @@ export async function encrypt<U extends UserSchema>(
         .sign(JWT_SIGN_KEY);
 }
 
-export async function decrypt(input: string): Promise<JWTPayload & CookieSessionData> {
+export async function decrypt(input: string): Promise<JWTPayload & CookieSessionData<UserSchema>> {
     const result = await jwtVerify<CookieSessionData>(input, JWT_SIGN_KEY, {
         algorithms: ["HS256"],
     });

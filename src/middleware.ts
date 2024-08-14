@@ -3,20 +3,31 @@ import { decrypt, encrypt } from "./lib/session";
 import { WEEK } from "./lib/constants";
 import { userRedirectPath } from "./lib/utilities";
 
+const PUBLIC_ROUTES = ["/menu"];
+
+const ROUTES = {
+    manager: ["/manager"],
+    resident: ["/"],
+    superuser: ["/superuser"],
+};
+
 export async function middleware(request: NextRequest) {
+    if (PUBLIC_ROUTES.includes(request.nextUrl.pathname)) return NextResponse.next();
     const session = request.cookies.get("session")?.value;
 
     if (session != null) {
         try {
             const expires = new Date(Date.now() + 1 * WEEK);
-            const parsed = { ...(await decrypt(session)), expires };
+            const parsed = { user: await decrypt(session), expires };
+            const response = // should redirect to default path => protected
+                ["/login", "/register"].includes(request.nextUrl.pathname) ||
+                !ROUTES[parsed.user.type].includes(request.nextUrl.pathname)
+                    ? NextResponse.redirect(new URL(userRedirectPath(parsed.user.type), request.url))
+                    : NextResponse.next();
 
-            const response = ["/login", "/register"].includes(request.nextUrl.pathname)
-                ? NextResponse.redirect(new URL(userRedirectPath(parsed.user.type), request.url))
-                : NextResponse.next();
             response.cookies.set({
                 name: "session",
-                value: await encrypt(parsed, expires),
+                value: await encrypt(parsed.user, expires),
                 httpOnly: true,
                 expires: expires,
                 sameSite: "lax",
