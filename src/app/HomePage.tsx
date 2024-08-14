@@ -44,11 +44,11 @@ export default function HomePage(props: PageProps) {
                 <div>
                     <div className="flex place-items-center justify-between select-none my-4">
                         <h1 className="font-bold text-4xl">Hi, {props.sessionData.user.name}!</h1>
-                        <Link href={"/logout"}>
+                        <a href={"/logout"}>
                             <div className="border-2 border-black px-2 py-1 hover:bg-black hover:text-white text-base">
                                 Logout
                             </div>
-                        </Link>
+                        </a>
                     </div>
                     <p className="text-justify text-pretty">
                         This is where you can opt-out from the future meals, if you prefer not to eat from the hostel

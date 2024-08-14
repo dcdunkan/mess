@@ -5,7 +5,6 @@ import { useFormState, useFormStatus } from "react-dom";
 import { register } from "@/form-handlers";
 import { ResidentInput } from "@/lib/types";
 import { validateResidentInput } from "@/lib/utilities";
-import Link from "next/link";
 import { HostelSelector } from "../ui/HostelSelector";
 
 export function RegisterPage(props: { hostels: Record<string, string> }) {
@@ -58,9 +57,9 @@ export function RegisterPage(props: { hostels: Record<string, string> }) {
                     <h1 className="text-4xl font-bold">Register</h1>
                     <p className="text-stone-600">
                         Already have an account?{" "}
-                        <Link className="underline font-medium" href={"/login"}>
+                        <a className="underline font-medium" href={"/login"}>
                             Login here
-                        </Link>
+                        </a>
                         .
                     </p>
                 </div>

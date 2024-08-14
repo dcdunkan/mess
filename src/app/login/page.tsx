@@ -2,7 +2,6 @@
 
 import { login } from "@/form-handlers";
 import { Checkbox } from "@nextui-org/react";
-import Link from "next/link";
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
@@ -17,9 +16,9 @@ export default function LoginPage() {
                     <h1 className="text-4xl font-bold mb-4">Login</h1>
                     <p className="text-lg">
                         ...or{" "}
-                        <Link className="underline font-medium" href="/register">
+                        <a className="underline font-medium" href="/register">
                             register
-                        </Link>
+                        </a>
                         ?
                     </p>
                 </div>

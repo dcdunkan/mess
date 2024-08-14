@@ -4,7 +4,6 @@ import { updateHostels } from "@/lib/database";
 import { useState } from "react";
 import clsx from "clsx";
 import toast from "react-hot-toast";
-import Link from "next/link";
 import { DatabaseMetadata } from "@/lib/types";
 
 type HostelList = Record<
@@ -36,11 +35,11 @@ export function SuperuserPage(props: { metadata: DatabaseMetadata }) {
                 <div className="flex justify-between place-items-center">
                     <div className="text-3xl my-4 font-semibold">Superuser</div>
 
-                    <Link href={"/logout"}>
+                    <a href={"/logout"}>
                         <div className="border-2 border-black px-2 py-1 hover:bg-black hover:text-white text-base">
                             Logout
                         </div>
-                    </Link>
+                    </a>
                 </div>
                 <fieldset className="border-2 border-black p-4">
                     <legend className="text-xl px-2 font-medium">Manage hostels</legend>

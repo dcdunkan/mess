@@ -4,7 +4,6 @@ import { getNegativeMonthlyCount, getTotalResidents } from "@/lib/database";
 import { CookieSessionData, DayData, Manager, SelectedDate } from "@/lib/types";
 import { getMonthInfo, organizeDayData, organizeMonthlyData, prepareDefaultMealCount } from "@/lib/utilities";
 import { HostelSelectorModal } from "@/app/ui/HostelSelectorModal";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -108,11 +107,11 @@ export function ManagerDashboardPage(props: ManagerDashboardPageProps) {
                             <p className="text-sm">Click to change hostel.</p>
                         </div>
 
-                        <Link href={"/logout"}>
+                        <a href={"/logout"}>
                             <div className="border-2 border-black px-2 py-1 hover:bg-black hover:text-white text-base">
                                 Logout
                             </div>
-                        </Link>
+                        </a>
                     </div>
                     {/* <p className="justify text-pretty">
                         You can see the counts for the future days right here on this page.
