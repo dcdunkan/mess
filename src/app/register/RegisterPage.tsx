@@ -6,12 +6,26 @@ import { register } from "@/form-handlers";
 import { ResidentInput } from "@/lib/types";
 import { validateResidentInput } from "@/lib/utilities";
 import { HostelSelector } from "../ui/HostelSelector";
+import { getMetadata } from "@/lib/database";
+import toast from "react-hot-toast";
 
-export function RegisterPage(props: { hostels: Record<string, string> }) {
+export function RegisterPage() {
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [message, dispatch] = useFormState(register, undefined);
+    const [hostels, setHostels] = useState<Record<string, string>>({});
+    const [hasMountedHostelList, setHasMountedHostelList] = useState(false);
+
+    useEffect(() => {
+        setHasMountedHostelList(false);
+        getMetadata()
+            .then((data) => {
+                setHostels(data.hostels);
+                setHasMountedHostelList(true);
+            })
+            .catch(() => toast.error("Failed to load hostel list."));
+    }, []);
 
     const formElement = useRef<HTMLFormElement>(null);
 
@@ -45,7 +59,7 @@ export function RegisterPage(props: { hostels: Record<string, string> }) {
             hostel: hostel.value,
             confirmPassword: confirmPassword.value,
         } satisfies ResidentInput;
-        const validated = validateResidentInput(resident, { hostels: props.hostels });
+        const validated = validateResidentInput(resident, { hostels });
         setValidationErrors(validated.errors);
         return { ok: validated.ok, resident };
     }
@@ -112,7 +126,11 @@ export function RegisterPage(props: { hostels: Record<string, string> }) {
                         />
                     </div>
                     <div>
-                        <HostelSelector onChange={revalidateFields} hostels={props.hostels} />
+                        <HostelSelector
+                            onChange={revalidateFields}
+                            hostels={hostels}
+                            disabled={!hasMountedHostelList}
+                        />
                     </div>
 
                     {validationErrors.length > 0 && (

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getMetadata } from "@/lib/database";
 import { ManagerDashboardPage } from "./Manager";
 import { getSessionData } from "@/lib/session";

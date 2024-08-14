@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getSessionData } from "@/lib/session";
 import { SuperuserPage } from "./SuperuserPage";
 import { Superuser } from "@/lib/types";
@@ -13,5 +15,6 @@ export default async function Page() {
     if (sessionData.user.type !== "superuser") {
         redirect(userRedirectPath(sessionData.user.type));
     }
-    return <SuperuserPage metadata={await getMetadata()} />;
+    const metadata = await getMetadata();
+    return <SuperuserPage metadata={metadata} />;
 }

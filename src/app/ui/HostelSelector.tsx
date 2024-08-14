@@ -3,6 +3,7 @@ import { ChangeEventHandler } from "react";
 interface HostelSelectorProps {
     hostels: Record<string, string>;
     onChange: ChangeEventHandler<HTMLSelectElement>;
+    disabled: boolean;
 }
 
 export function HostelSelector(props: HostelSelectorProps) {
@@ -10,10 +11,11 @@ export function HostelSelector(props: HostelSelectorProps) {
         <select
             defaultValue={"null"}
             required
-            className="border-2 bg-inherit border-black p-2.5 w-full"
+            className="border-2 bg-inherit border-black p-2.5 w-full disabled:bg-gray-200 disabled:text-gray-500"
             id="hostel"
             name="hostel"
             onChange={props.onChange}
+            disabled={props.disabled}
         >
             <option disabled aria-disabled hidden value="null">
                 Select hostel
