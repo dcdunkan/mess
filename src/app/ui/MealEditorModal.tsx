@@ -14,7 +14,12 @@ interface MealEditorModalProps {
     editable: boolean;
 }
 
-export function MealEditorModal({ onClose, selectedDate, sessionData, editable }: MealEditorModalProps) {
+export function MealEditorModal({
+    onClose,
+    selectedDate,
+    sessionData,
+    editable,
+}: MealEditorModalProps) {
     const thisDate = useMemo(() => {
         return {
             day: selectedDate.getDate(),
@@ -23,7 +28,7 @@ export function MealEditorModal({ onClose, selectedDate, sessionData, editable }
         };
     }, [selectedDate]);
     const sessionResident = useMemo(() => {
-        return { id: sessionData._id, hostel: sessionData.hostel };
+        return { id: sessionData.user._id, hostel: sessionData.user.hostel };
     }, [sessionData]);
 
     const [previouslySelectedMeals, setPreviouslySelectedMeals] = useState<string[]>([
@@ -111,7 +116,8 @@ export function MealEditorModal({ onClose, selectedDate, sessionData, editable }
                             </Switch>
                         </div>
                         <p>
-                            You can check the following fields to individually opt-out from a meal of the selected day:
+                            You can check the following fields to individually opt-out from a meal
+                            of the selected day:
                         </p>
                         <div>
                             <CheckboxGroup
@@ -177,7 +183,11 @@ function ChangesApplyButton(props: {
             className="cursor-pointer w-full rounded-md bg-black text-white text-center p-4 font-semibold disabled:bg-gray-300 disabled:text-gray-500 shadow-inner"
             onClick={() => props.onClick(setIsProcessing)}
         >
-            {isProcessing ? "Applying..." : isSame ? "Make some changes to apply." : "Apply Changes"}
+            {isProcessing
+                ? "Applying..."
+                : isSame
+                ? "Make some changes to apply."
+                : "Apply Changes"}
         </button>
     );
 }

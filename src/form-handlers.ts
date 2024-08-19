@@ -57,9 +57,11 @@ export async function login(_: unknown, formData: FormData) {
         if (loginType === "superuser") {
             session = await encrypt<Superuser>(
                 {
-                    _id: "superuser",
-                    type: "superuser",
-                    name: "Superuser",
+                    user: {
+                        _id: "superuser",
+                        type: "superuser",
+                        name: "Superuser",
+                    },
                     expires: expires,
                 },
                 expires
@@ -67,10 +69,12 @@ export async function login(_: unknown, formData: FormData) {
         } else if (loginType === "manager") {
             session = await encrypt<Manager>(
                 {
-                    _id: "manager",
-                    type: "manager",
-                    name: "Manager",
-                    login: "manager",
+                    user: {
+                        _id: "manager",
+                        type: "manager",
+                        name: "Manager",
+                        login: "manager",
+                    },
                     expires: expires,
                 },
                 expires
@@ -82,10 +86,12 @@ export async function login(_: unknown, formData: FormData) {
             });
             session = await encrypt<Resident>(
                 {
-                    _id: user._id.toString(),
-                    type: "resident",
-                    name: user.name,
-                    hostel: user.hostel,
+                    user: {
+                        _id: user._id.toString(),
+                        type: "resident",
+                        name: user.name,
+                        hostel: user.hostel,
+                    },
                     expires: expires,
                 },
                 expires

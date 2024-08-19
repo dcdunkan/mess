@@ -1,18 +1,20 @@
+import { getSessionData } from "../lib/session";
 import { redirect } from "next/navigation";
 import HomePage from "./HomePage";
 import { userRedirectPath } from "@/lib/utilities";
-import { CookieSessionData, Resident } from "@/lib/types";
-import { verifySession } from "@/lib/session-verification";
+import { Resident } from "@/lib/types";
 
 export default async function Page() {
     const today = new Date();
-    const session = (await verifySession()) as unknown as {
-        user: CookieSessionData<Resident>;
-    };
+    const sessionData = await getSessionData<Resident>();
 
-    if (session.user.type !== "resident") {
-        return <>Unauthorized</>;
+    if (sessionData == null) {
+        redirect("/login");
     }
 
-    return <HomePage sessionData={session.user} today={today} />;
+    if (sessionData.user.type !== "resident") {
+        redirect(userRedirectPath(sessionData.user.type));
+    }
+
+    return <HomePage sessionData={sessionData} today={today} />;
 }

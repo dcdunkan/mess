@@ -29,7 +29,7 @@ export default function HomePage(props: PageProps) {
     useEffect(() => {
         getResidentMarkings(
             { month: selectedMonth.monthIndex, year: selectedMonth.year },
-            { id: props.sessionData._id, hostel: props.sessionData.hostel }
+            { id: props.sessionData.user._id, hostel: props.sessionData.user.hostel }
         )
             .then((data) => {
                 setMonthlyPreferences(data);
@@ -43,7 +43,7 @@ export default function HomePage(props: PageProps) {
             <div className="flex flex-col p-8 max-w-screen-lg text-lg mx-auto space-y-10">
                 <div>
                     <div className="flex place-items-center justify-between select-none my-4">
-                        <h1 className="font-bold text-4xl">Hi, {props.sessionData.name}!</h1>
+                        <h1 className="font-bold text-4xl">Hi, {props.sessionData.user.name}!</h1>
                         <a href={"/logout"}>
                             <div className="border-2 border-black px-2 py-1 hover:bg-black hover:text-white text-base">
                                 Logout

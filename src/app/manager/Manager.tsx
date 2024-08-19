@@ -1,7 +1,7 @@
 "use client";
 
 import { getNegativeMonthlyCount, getTotalResidents } from "@/lib/database";
-import { DayData, SelectedDate } from "@/lib/types";
+import { CookieSessionData, DayData, Manager, SelectedDate } from "@/lib/types";
 import { getMonthInfo, organizeDayData, organizeMonthlyData, prepareDefaultMealCount } from "@/lib/utilities";
 import { HostelSelectorModal } from "@/app/ui/HostelSelectorModal";
 import { useEffect, useMemo, useState } from "react";
@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 interface ManagerDashboardPageProps {
     today: Date;
     tomorrow: SelectedDate;
+    sessionData: CookieSessionData<Manager>;
     hostelIds: string[];
     hostels: Record<string, string>;
 }
