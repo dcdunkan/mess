@@ -12,15 +12,8 @@ export default function LoginPage() {
     return (
         <main className="h-screen items-center flex justify-center flex-col mx-auto max-w-screen-lg text-base p-4">
             <div className="md:w-1/2 w-3/4">
-                <div className="flex place-items-baseline justify-between">
+                <div className="flex place-items-baseline justify-between select-none">
                     <h1 className="text-4xl font-bold mb-4">Login</h1>
-                    <p className="text-lg">
-                        ...or{" "}
-                        <a className="underline font-medium" href="/register">
-                            register
-                        </a>
-                        ?
-                    </p>
                 </div>
 
                 <form className="grid gap-3" autoComplete={"off"} action={dispatch}>

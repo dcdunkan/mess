@@ -10,6 +10,7 @@ import { getResidentMarkings } from "@/lib/database";
 
 interface PageProps {
     today: Date;
+    tomorrow: Date;
     sessionData: CookieSessionData<Resident>;
 }
 
@@ -142,6 +143,7 @@ export default function HomePage(props: PageProps) {
                     {!isCalendarReady && <div className="text-center">{calendarStatus}</div>}
                     {isCalendarReady && (
                         <CalendarView
+                            tomorrow={props.tomorrow}
                             monthlyPreferences={monthlyPreferences}
                             monthInfo={month}
                             today={props.today}

@@ -12,7 +12,7 @@ import {
     Optional,
 } from "./types";
 import { hash, compare } from "bcrypt";
-import { ReasonedError } from "./utilities";
+import { isPastDay, ReasonedError } from "./utilities";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (MONGODB_URI == null) {
@@ -36,26 +36,6 @@ export async function getMetadata(): Promise<DatabaseMetadata> {
 export async function updateHostels(hostels: Record<string, string>) {
     await client.connect();
     await metadata.updateOne({ metadata: true }, { $set: { hostels } }, { upsert: true });
-}
-
-export async function registerResident(resident: Resident) {
-    await client.connect();
-    if ((await users.findOne({ admission: resident.admission })) != null) {
-        throw new ReasonedError("Resident with the same admission number already exists");
-    }
-    try {
-        const hashedPassword = await hash(resident.password, 10);
-        const result = await users.insertOne({
-            type: "resident",
-            name: resident.name,
-            admission: resident.admission,
-            password: hashedPassword,
-            hostel: resident.hostel,
-        });
-        return result.insertedId.toString();
-    } catch (error) {
-        throw new ReasonedError("Server error: failed to register resident");
-    }
 }
 
 export async function getResident(details: { admission: string; password: string }): Promise<WithId<Resident>> {
@@ -122,5 +102,17 @@ export async function updateResidentMarkings(
     updated: MealStatus
 ) {
     await client.connect();
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const selectedDate = new Date(date.year, date.month, date.day);
+    const isPastModifiableTime =
+        isPastDay(selectedDate, today) || (today.getHours() >= 22 && isPastDay(selectedDate, tomorrow));
+
+    if (isPastModifiableTime) {
+        throw new Error("Preferences cannot be edited for the day anymore.");
+    }
+
     await markings.updateOne({ date, resident }, { $set: { date, resident, meals: updated } }, { upsert: true });
 }

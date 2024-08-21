@@ -32,6 +32,20 @@ export function getMonthInfo(year: number, month: number): MonthInfo {
     };
 }
 
+export function isPastDay(date: Date, isPastOf: Date) {
+    return date.getFullYear() < isPastOf.getFullYear()
+        ? true
+        : date.getFullYear() == isPastOf.getFullYear()
+        ? date.getMonth() < isPastOf.getMonth()
+            ? true
+            : date.getMonth() == isPastOf.getMonth()
+            ? date.getDate() <= isPastOf.getDate()
+                ? true
+                : false
+            : false
+        : false;
+}
+
 export function userRedirectPath(type: UserType) {
     switch (type) {
         case "superuser":

@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
             const expires = new Date(Date.now() + 1 * WEEK);
             const parsed = { ...(await decrypt(session)), expires };
 
-            const response = ["/login", "/register"].includes(request.nextUrl.pathname)
+            const response = ["/login"].includes(request.nextUrl.pathname)
                 ? NextResponse.redirect(new URL(userRedirectPath(parsed.user.type), request.url))
                 : NextResponse.next();
             response.cookies.set({
@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    if (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register") {
+    if (request.nextUrl.pathname === "/login") {
         return NextResponse.next();
     }
 

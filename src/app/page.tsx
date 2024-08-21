@@ -6,6 +6,10 @@ import { Resident } from "@/lib/types";
 
 export default async function Page() {
     const today = new Date();
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
     const sessionData = await getSessionData<Resident>();
 
     if (sessionData == null) {
@@ -16,5 +20,5 @@ export default async function Page() {
         redirect(userRedirectPath(sessionData.user.type));
     }
 
-    return <HomePage sessionData={sessionData} today={today} />;
+    return <HomePage sessionData={sessionData} today={today} tomorrow={tomorrow} />;
 }

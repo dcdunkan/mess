@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { SelectedMonth, MonthInfo, DayPreference, MealType } from "../../lib/types";
 import { MEAL_TYPES } from "@/lib/constants";
+import { isPastDay } from "@/lib/utilities";
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -8,6 +9,7 @@ type DateSelectionHandler = (date: Date, options: { isPastDay: boolean }) => voi
 
 export function CalendarView(props: {
     today: Date;
+    tomorrow: Date;
     monthInfo: MonthInfo;
     selectedMonth: SelectedMonth;
     onDateSelected: DateSelectionHandler;
@@ -48,17 +50,20 @@ function CalendarWeek({
     selectedMonth,
     today,
     weekIndex,
+    tomorrow,
     monthlyPreferences,
 }: {
     weekIndex: number;
     monthInfo: MonthInfo;
     today: Date;
+    tomorrow: Date;
     selectedMonth: SelectedMonth;
     onDateSelected: DateSelectionHandler;
     monthlyPreferences: DayPreference[];
 }) {
     return new Array(7).fill(0).map((_, j) => {
         let thisDay = weekIndex * 7 + j + 1 - monthInfo.startDate;
+        let inaccessible = thisDay < 1 || thisDay > monthInfo.days;
 
         // should be asserted before modifying the calculated day:
         const isToday =
@@ -66,19 +71,10 @@ function CalendarWeek({
             selectedMonth.monthIndex == today.getMonth() &&
             selectedMonth.year === today.getFullYear();
 
-        let inaccessible = thisDay < 1 || thisDay > monthInfo.days;
-        let isPastDay =
-            selectedMonth.year < today.getFullYear()
-                ? true
-                : selectedMonth.year == today.getFullYear()
-                ? selectedMonth.monthIndex < today.getMonth()
-                    ? true
-                    : selectedMonth.monthIndex == today.getMonth()
-                    ? thisDay <= today.getDate()
-                        ? true
-                        : false
-                    : false
-                : false;
+        const isTomorrow =
+            tomorrow.getDate() === thisDay &&
+            selectedMonth.monthIndex == tomorrow.getMonth() &&
+            selectedMonth.year === tomorrow.getFullYear();
 
         if (thisDay < 1) {
             thisDay = monthInfo.prevMonthLastDate - monthInfo.startDate + j + 1;
@@ -87,6 +83,12 @@ function CalendarWeek({
         }
 
         const thisDate = new Date(selectedMonth.year, selectedMonth.monthIndex, thisDay);
+
+        let isPastModifiableTime =
+            // is yesterday
+            isPastDay(thisDate, today) ||
+            // or is tomorrow, and if today's time is past 22:00, then nope
+            (today.getHours() >= 22 && isPastDay(thisDate, tomorrow));
 
         const preference = monthlyPreferences.find(
             ({ date }) =>
@@ -105,14 +107,18 @@ function CalendarWeek({
                     "bg-stone-100 text-base font-extralight": inaccessible,
                     "hover:bg-stone-50 text-xl font-medium": !inaccessible,
                     "!font-black border-black border-2": isToday,
-                    "bg-stone-100": isPastDay,
+                    "border-black/20 border-2": isTomorrow,
+                    "opacity-50": isPastModifiableTime,
                     "bg-red-400": preferenceLevel === 0,
                     "bg-red-300": preferenceLevel > 10 && preferenceLevel < 30,
                     "bg-red-200": preferenceLevel >= 30 && preferenceLevel < 60,
                     "bg-red-100": preferenceLevel >= 60 && preferenceLevel < 100,
                 })}
             >
-                <button className="size-full py-3 sm:py-4" onClick={() => onDateSelected(thisDate, { isPastDay })}>
+                <button
+                    className="size-full py-3 sm:py-4"
+                    onClick={() => onDateSelected(thisDate, { isPastDay: isPastModifiableTime })}
+                >
                     {thisDay}
                 </button>
             </td>

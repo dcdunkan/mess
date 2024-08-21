@@ -1,37 +1,12 @@
 "use server";
 
-import { getResident, registerResident } from "@/lib/database";
+import { getResident } from "@/lib/database";
 import { Manager, Resident, Superuser, UserType } from "@/lib/types";
 import { WEEK } from "@/lib/constants";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReasonedError, userRedirectPath } from "./lib/utilities";
 import { encrypt } from "./lib/session";
-
-export async function register(_: unknown, formData: FormData) {
-    try {
-        const name = formData.get("full-name")?.toString();
-        const admission = formData.get("admission-no")?.toString();
-        const password = formData.get("password")?.toString();
-        const hostel = formData.get("hostel")?.toString();
-        if (name == null || admission == null || password == null || hostel == null) {
-            throw new ReasonedError("Invalid form data");
-        }
-        await registerResident({
-            type: "resident",
-            admission: admission,
-            hostel: hostel,
-            name: name,
-            password: password,
-        });
-        redirect("/login");
-    } catch (error) {
-        if (error instanceof ReasonedError) {
-            return error.reason;
-        }
-        throw error;
-    }
-}
 
 export async function login(_: unknown, formData: FormData) {
     try {
