@@ -123,7 +123,7 @@ export async function getNegativeMonthlyCount(filters: {
 
 export async function updateResidentMarkings(
     date: SelectedDate,
-    resident: { id: string; hostel: string },
+    resident: { id: string; hostel: string; name: string },
     updated: MealStatus
 ) {
     await client.connect();

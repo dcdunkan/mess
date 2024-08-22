@@ -42,6 +42,7 @@ export type MarkingsSchema = {
     resident: {
         id: string;
         hostel: string;
+        name: string;
     };
     meals: MealStatus;
 };
