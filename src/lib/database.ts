@@ -38,6 +38,12 @@ export async function updateHostels(hostels: Record<string, string>) {
     await metadata.updateOne({ metadata: true }, { $set: { hostels } }, { upsert: true });
 }
 
+export async function doesResidentExists(admission: string): Promise<boolean> {
+    await client.connect();
+    const user = await users.findOne({ type: "resident", admission: admission });
+    return user != null;
+}
+
 export async function getResident(details: { admission: string; password: string }): Promise<WithId<Resident>> {
     await client.connect();
     const user = await users.findOne({ type: "resident", admission: details.admission });
@@ -47,7 +53,26 @@ export async function getResident(details: { admission: string; password: string
     return user as WithId<Resident>;
 }
 
-// TODO: overload for monthly/day
+export async function updatePassword(details: {
+    admission: string;
+    currentPassword: string;
+    newPassword: string;
+}): Promise<boolean> {
+    await client.connect();
+    const user = await users.findOne({ type: "resident", admission: details.admission });
+    if (user == null) throw new ReasonedError("Something went wrong!");
+    const currentPasswordMatch = await compare(details.currentPassword, user.password);
+    if (!currentPasswordMatch) throw new ReasonedError("Current password is wrong.");
+    const newPasswordMatch = await compare(details.newPassword, user.password);
+    if (newPasswordMatch) throw new ReasonedError("Newer password can't be the same as the current one.");
+    const hashedNewPassword = await hash(details.newPassword, 10);
+    await users.findOneAndUpdate(
+        { type: "resident", admission: details.admission, password: user.password },
+        { $set: { password: hashedNewPassword } }
+    );
+    return true;
+}
+
 export async function getResidentMarkings(
     date: Partial<SelectedDate>,
     resident: { id: string; hostel: string }
@@ -102,6 +127,7 @@ export async function updateResidentMarkings(
     updated: MealStatus
 ) {
     await client.connect();
+
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);

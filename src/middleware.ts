@@ -14,6 +14,7 @@ export async function middleware(request: NextRequest) {
             const response = ["/login"].includes(request.nextUrl.pathname)
                 ? NextResponse.redirect(new URL(userRedirectPath(parsed.user.type), request.url))
                 : NextResponse.next();
+
             response.cookies.set({
                 name: "session",
                 value: await encrypt(parsed, expires),

@@ -7,6 +7,7 @@ import { MealEditorModal } from "./ui/MealEditorModal";
 import { CookieSessionData, DayPreference, Resident } from "../lib/types";
 import { getMonthInfo } from "../lib/utilities";
 import { getResidentMarkings } from "@/lib/database";
+import { LogOutIcon, SoupIcon, UserCogIcon } from "lucide-react";
 
 interface PageProps {
     today: Date;
@@ -45,11 +46,6 @@ export default function HomePage(props: PageProps) {
                 <div>
                     <div className="flex place-items-center justify-between select-none my-4">
                         <h1 className="font-bold text-4xl">Hi, {props.sessionData.user.name}!</h1>
-                        <a href={"/logout"}>
-                            <div className="border-2 border-black px-2 py-1 hover:bg-black hover:text-white text-base">
-                                Logout
-                            </div>
-                        </a>
                     </div>
                     <p className="text-justify text-pretty">
                         This is where you can opt-out from the future meals, if you prefer not to eat from the hostel
@@ -157,16 +153,49 @@ export default function HomePage(props: PageProps) {
                     )}
                 </div>
 
-                <div>
-                    <Link href={"/menu"}>
-                        <div className="flex justify-between place-items-center p-6 border-black border bg-stone-100 hover:bg-stone-50 transition-all">
-                            <div>
-                                <div className="font-semibold text-xl">🍲 Checkout the food menu!</div>
-                                <div className="text-lg">...and make suggestions or complaints.</div>
+                <div className="text-base">
+                    <div className="hover:bg-black/5 rounded transition-all duration-200">
+                        <Link href={"/menu"}>
+                            <div className="p-4 flex place-items-center justify-between select-none">
+                                <div className="flex gap-4 place-items-center">
+                                    <SoupIcon />
+                                    <div>
+                                        <div className="text-xl">Check out the menu!</div>
+                                        <div>...and make complaints or suggestions.</div>
+                                    </div>
+                                </div>
+                                <div className="text-xl">&rarr;</div>
                             </div>
-                            <div className="text-4xl">&rarr;</div>
-                        </div>
-                    </Link>
+                        </Link>
+                    </div>
+                    <div className="hover:bg-black/5 rounded transition-all duration-200">
+                        <Link href={"/account"}>
+                            <div className="p-4 flex place-items-center justify-between select-none">
+                                <div className="flex gap-4 place-items-center">
+                                    <UserCogIcon />
+                                    <div>
+                                        <div className="text-xl">Account Settings</div>
+                                        <div>Review information, change password.</div>
+                                    </div>
+                                </div>
+                                <div className="text-xl">&rarr;</div>
+                            </div>
+                        </Link>
+                    </div>
+                    <div className="hover:bg-red-400/40 rounded transition-all duration-200">
+                        <a href={"/logout"}>
+                            <div className="p-4 flex place-items-center justify-between select-none">
+                                <div className="flex gap-4 place-items-center">
+                                    <LogOutIcon />
+                                    <div>
+                                        <div className="text-xl">Logout</div>
+                                        <div>Log out of your account.</div>
+                                    </div>
+                                </div>
+                                <div className="text-xl">&rarr;</div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
 

@@ -1,12 +1,12 @@
 "use server";
 
-import { getResident } from "@/lib/database";
+import { getResident, updatePassword } from "@/lib/database";
 import { Manager, Resident, Superuser, UserType } from "@/lib/types";
 import { WEEK } from "@/lib/constants";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReasonedError, userRedirectPath } from "./lib/utilities";
-import { encrypt } from "./lib/session";
+import { encrypt, getSessionData } from "./lib/session";
 
 export async function login(_: unknown, formData: FormData) {
     try {
@@ -64,8 +64,10 @@ export async function login(_: unknown, formData: FormData) {
                     user: {
                         _id: user._id.toString(),
                         type: "resident",
+                        admission: user.admission,
                         name: user.name,
                         hostel: user.hostel,
+                        room: user.room,
                     },
                     expires: expires,
                 },
@@ -86,5 +88,40 @@ export async function login(_: unknown, formData: FormData) {
             return error.reason;
         }
         throw error;
+    }
+}
+export async function changePassword(_: { success: boolean; message: string }, formData: FormData) {
+    try {
+        const session = await getSessionData<Resident>();
+        if (session == null || session.user.type != "resident") {
+            throw new ReasonedError("Invalid session");
+        }
+        const currentPassword = formData.get("currentPassword")?.toString().trim();
+        const updatedPassword = formData.get("updatedPassword")?.toString().trim();
+        if (
+            currentPassword == null ||
+            updatedPassword == null ||
+            currentPassword.length === 0 ||
+            updatedPassword.length === 0
+        ) {
+            throw new ReasonedError("Invalid form data");
+        }
+        if (updatedPassword.length < 6) {
+            throw new ReasonedError("Password must be at least 6 characters long.");
+        }
+        if (updatedPassword.length > 32) {
+            throw new ReasonedError("Password cannot be longer than 32 characters.");
+        }
+        await updatePassword({
+            admission: session.user.admission,
+            currentPassword: currentPassword,
+            newPassword: updatedPassword,
+        });
+        return { success: true, message: "Changed password successfully." };
+    } catch (error) {
+        if (error instanceof ReasonedError) {
+            return { success: false, message: error.reason };
+        }
+        return { success: false, message: "Something went wrong." };
     }
 }

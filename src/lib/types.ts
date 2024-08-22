@@ -22,6 +22,7 @@ export interface Resident extends BaseUserSchema {
     type: "resident";
     admission: string;
     hostel: string;
+    room: string;
 }
 export interface Manager extends BaseUserSchema {
     type: "manager";
@@ -31,7 +32,7 @@ export type Superuser = BaseUserSchema & {
     type: "superuser";
 };
 export interface CookieSessionData<U extends UserSchema = UserSchema> {
-    user: Omit<U, "password" | "admission"> & { _id: string };
+    user: Omit<U, "password"> & { _id: string };
     expires: Date;
 }
 
