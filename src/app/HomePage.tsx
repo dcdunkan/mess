@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { CalendarView } from "./ui/CalendarView";
 import { MealEditorModal } from "./ui/MealEditorModal";
 import { CookieSessionData, DayPreference, Resident } from "../lib/types";
-import { getMonthInfo } from "../lib/utilities";
+import { displayName, getMonthInfo } from "../lib/utilities";
 import { getResidentMarkings } from "@/lib/database";
 import { LogOutIcon, SoupIcon, UserCogIcon } from "lucide-react";
 
@@ -45,7 +45,10 @@ export default function HomePage(props: PageProps) {
             <div className="flex flex-col p-8 max-w-screen-lg text-lg mx-auto space-y-10">
                 <div>
                     <div className="flex place-items-center justify-between select-none my-4">
-                        <h1 className="font-bold text-4xl">Hi, {props.sessionData.user.name}!</h1>
+                        <div>
+                            <p>Logged in as</p>
+                            <div className="font-medium text-3xl">{displayName(props.sessionData.user.name)}</div>
+                        </div>
                     </div>
                     <p className="text-justify text-pretty">
                         This is where you can opt-out from the future meals, if you prefer not to eat from the hostel
@@ -54,53 +57,10 @@ export default function HomePage(props: PageProps) {
                     </p>
                 </div>
 
-                {/* <div>
-                    <h3 className="text-2xl font-semibold">Weekly Overview</h3>
-                    <p className="text-justify text-pretty">
-                        Customize your meal preferences for the upcoming week.
-                    </p>
-
-                    <div className="grid grid-cols-1 divide-y divide-black w-full mt-4">
-                        {new Array(7).fill(0).map((x, i) => {
-                            let day = today.getDate() + i + 1;
-                            let monthValue = today.getMonth() + 1;
-                            let year = today.getFullYear();
-
-                            if (day > month.days) {
-                                const updatedMonthValue = (monthValue % 12) + 1;
-                                if (updatedMonthValue < monthValue) year++;
-                                monthValue = updatedMonthValue;
-                                day -= month.days;
-                            }
-
-                            const weekDay = Intl.DateTimeFormat("en-US", {
-                                weekday: "long",
-                            }).format(new Date(year, monthValue - 1, day));
-
-                            return (
-                                <div
-                                    key={i}
-                                    className="grid grid-rows-1 grid-cols-6 gap-5 py-3 text-center"
-                                >
-                                    <div>
-                                        {day.toString().padStart(2, "0")}/
-                                        {monthValue.toString().padStart(2, "0")}
-                                    </div>
-                                    <div className="truncate">{weekDay}</div>
-                                    <div>Breakfast</div>
-                                    <div>Lunch</div>
-                                    <div>Snacks</div>
-                                    <div>Dinner</div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div> */}
-
                 <div className="w-full mx-auto flex flex-col space-y-4">
                     <div className="flex place-items-center justify-between select-none text-2xl">
                         <div>
-                            <h2 className="font-semibold">
+                            <h2 className="text-2xl">
                                 {month.name} {month.year}
                             </h2>
                         </div>
@@ -135,7 +95,12 @@ export default function HomePage(props: PageProps) {
                             </span>
                         </div>
                     </div>
-                    <p className="">Click a date to adjust your breakfast, lunch, or dinner preferences.</p>
+
+                    <p>
+                        Click a future date to adjust your breakfast, lunch, or dinner preferences. You can also review
+                        your past preferences by clicking the past days.
+                    </p>
+
                     {!isCalendarReady && <div className="text-center">{calendarStatus}</div>}
                     {isCalendarReady && (
                         <CalendarView
@@ -154,20 +119,6 @@ export default function HomePage(props: PageProps) {
                 </div>
 
                 <div className="text-base">
-                    <div className="hover:bg-black/5 rounded transition-all duration-200">
-                        <Link href={"/menu"}>
-                            <div className="p-4 flex place-items-center justify-between select-none">
-                                <div className="flex gap-4 place-items-center">
-                                    <SoupIcon />
-                                    <div>
-                                        <div className="text-xl">Check out the menu!</div>
-                                        <div>...and make complaints or suggestions.</div>
-                                    </div>
-                                </div>
-                                <div className="text-xl">&rarr;</div>
-                            </div>
-                        </Link>
-                    </div>
                     <div className="hover:bg-black/5 rounded transition-all duration-200">
                         <Link href={"/account"}>
                             <div className="p-4 flex place-items-center justify-between select-none">

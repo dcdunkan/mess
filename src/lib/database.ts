@@ -121,6 +121,7 @@ export async function getNegativeMonthlyCount(filters: {
     return monthlyRecordedData;
 }
 
+// TODO: if all the meal preferences are restored, delete the entry.
 export async function updateResidentMarkings(
     date: SelectedDate,
     resident: { id: string; hostel: string; name: string },

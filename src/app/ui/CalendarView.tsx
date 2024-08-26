@@ -103,9 +103,9 @@ function CalendarWeek({
         return (
             <td
                 key={j}
-                className={clsx("border table-cell cursor-pointer", {
+                className={clsx("border table-cell cursor-pointer transition-all duration-150 hover:opacity-20", {
                     "bg-stone-100 text-base font-extralight": inaccessible,
-                    "hover:bg-stone-50 text-xl font-medium": !inaccessible,
+                    "text-xl font-medium": !inaccessible,
                     "!font-black border-black border-2": isToday,
                     "border-black/20 border-2": isTomorrow,
                     "opacity-50": isPastModifiableTime,

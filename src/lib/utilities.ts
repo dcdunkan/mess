@@ -58,6 +58,13 @@ export function userRedirectPath(type: UserType) {
     }
 }
 
+export function displayName(name: string): string {
+    return name
+        .split(/\s+/)
+        .map((part) => (part.length <= 2 ? part.toUpperCase() : part[0].toUpperCase() + part.slice(1).toLowerCase()))
+        .join(" ");
+}
+
 export function validateResidentInput(fields: ResidentInput, options: { hostels: Record<string, string> }) {
     const errors: string[] = [];
     if (typeof fields.name !== "string" || fields.name.trim().length == 0) {
