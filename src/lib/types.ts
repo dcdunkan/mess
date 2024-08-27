@@ -73,5 +73,3 @@ export interface MonthInfo {
     prevMonthIndex: number;
     prevMonthLastDate: number;
 }
-
-export type ResidentInput = Resident & { confirmPassword: string };
