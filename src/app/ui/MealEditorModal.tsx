@@ -71,7 +71,6 @@ export function MealEditorModal({ onClose, selectedDate, sessionData, editable }
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error(error);
                 setLoadingStatus("Error occurred while fetching data.");
             })
             .finally(() => {

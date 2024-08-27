@@ -14,6 +14,7 @@ export interface DatabaseMetadata {
 export type UserType = "resident" | "manager" | "superuser";
 export type UserSchema = Resident | Manager | Superuser;
 export interface BaseUserSchema {
+    _id: string;
     type: UserType;
     name: string;
     password: string;

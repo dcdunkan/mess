@@ -14,3 +14,5 @@ export const MEALS: Record<MealType, string> = {
     snacks: "Snacks",
     dinner: "Dinner",
 };
+
+export const ITEMS_PER_PAGE = 50;

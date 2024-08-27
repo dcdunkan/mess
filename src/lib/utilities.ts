@@ -1,5 +1,5 @@
 import { MEAL_TYPES } from "./constants";
-import { MealStatus, MealType, MonthInfo, ResidentInput, UserType } from "./types";
+import { MealStatus, MealType, MonthInfo, Resident, ResidentInput, UserType } from "./types";
 
 export class ReasonedError extends Error {
     constructor(public reason: string) {
@@ -32,14 +32,19 @@ export function getMonthInfo(year: number, month: number): MonthInfo {
     };
 }
 
-export function isPastDay(date: Date, isPastOf: Date) {
+export function isPastDay(
+    date: Date,
+    isPastOf: Date,
+    // consider the (future) date as past.
+    { includeToday = true }: { includeToday: boolean }
+) {
     return date.getFullYear() < isPastOf.getFullYear()
         ? true
         : date.getFullYear() == isPastOf.getFullYear()
         ? date.getMonth() < isPastOf.getMonth()
             ? true
             : date.getMonth() == isPastOf.getMonth()
-            ? date.getDate() <= isPastOf.getDate()
+            ? (includeToday ? date.getDate() <= isPastOf.getDate() : date.getDate() < isPastOf.getDate())
                 ? true
                 : false
             : false
@@ -120,4 +125,25 @@ export function organizeDayData({ data }: { day: number; data: MealStatus[] }) {
         }
         return prev;
     }, prepareDefaultMealCount(0));
+}
+
+export function generateCSV(
+    residents: Omit<Resident, "password">[],
+    monthlyData: Record<string, number>,
+    monthDays: number
+) {
+    return (
+        `Room,Name,Admission No,Days\n` +
+        residents
+            .map((resident) =>
+                [
+                    // keep it formatted
+                    resident.room,
+                    resident.name,
+                    resident.admission,
+                    monthDays - (monthlyData[resident._id] ?? 0),
+                ].join(",")
+            )
+            .join("\n")
+    );
 }

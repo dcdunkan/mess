@@ -1,11 +1,10 @@
 "use server";
 
-import { MongoClient, WithId } from "mongodb";
+import { MongoClient, ObjectId, WithId } from "mongodb";
 import {
     Resident,
     SelectedDate,
     MarkingsSchema,
-    UserSchema,
     MealStatus,
     UnorganizedMonthData,
     DatabaseMetadata,
@@ -13,6 +12,7 @@ import {
 } from "./types";
 import { hash, compare } from "bcrypt";
 import { isPastDay, ReasonedError } from "./utilities";
+import { ITEMS_PER_PAGE } from "./constants";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (MONGODB_URI == null) {
@@ -22,7 +22,7 @@ if (MONGODB_URI == null) {
 const client = new MongoClient(MONGODB_URI);
 const database = client.db("hostel");
 
-const users = database.collection<UserSchema>("users");
+const users = database.collection<Resident>("users");
 const metadata = database.collection<DatabaseMetadata>("metadata");
 const markings = database.collection<MarkingsSchema>("markings");
 
@@ -121,6 +121,30 @@ export async function getNegativeMonthlyCount(filters: {
     return monthlyRecordedData;
 }
 
+export async function getMonthlyHostelData(filters: { date: Omit<SelectedDate, "day">; hostel: string }) {
+    await client.connect();
+    const monthlyRecordedData = await markings
+        .aggregate<{ _id: ObjectId; data: MealStatus[] }>([
+            {
+                $match: {
+                    "resident.hostel": filters.hostel,
+                    "date.year": filters.date.year,
+                    "date.month": filters.date.month,
+                },
+            },
+            { $group: { _id: "$resident.id", data: { $push: "$meals" } } },
+        ])
+        .toArray();
+    return monthlyRecordedData.reduce((prev, record) => {
+        prev[record._id.toString()] = record.data.reduce((p, c) => p + hasOptedOut(c), 0);
+        return prev;
+    }, {} as Record<string, number>);
+}
+
+function hasOptedOut(status: MealStatus) {
+    return Object.values(status).every((x) => !x) ? 1 : 0;
+}
+
 // TODO: if all the meal preferences are restored, delete the entry.
 export async function updateResidentMarkings(
     date: SelectedDate,
@@ -135,11 +159,35 @@ export async function updateResidentMarkings(
 
     const selectedDate = new Date(date.year, date.month, date.day);
     const isPastModifiableTime =
-        isPastDay(selectedDate, today) || (today.getHours() >= 22 && isPastDay(selectedDate, tomorrow));
+        isPastDay(selectedDate, today, { includeToday: true }) ||
+        (today.getHours() >= 22 && isPastDay(selectedDate, tomorrow, { includeToday: true }));
 
     if (isPastModifiableTime) {
         throw new Error("Preferences cannot be edited for the day anymore.");
     }
 
     await markings.updateOne({ date, resident }, { $set: { date, resident, meals: updated } }, { upsert: true });
+}
+
+export async function getResidentsList(options: {
+    hostel: string;
+    page: number;
+}): Promise<Omit<Resident, "password">[]> {
+    await client.connect();
+
+    const totalResidents = await getTotalResidents(options.hostel);
+    const totalPages = Math.ceil(totalResidents / ITEMS_PER_PAGE);
+
+    // wrap the pages
+    options.page = options.page > totalPages ? totalPages : options.page < 1 ? 1 : options.page;
+
+    const residents = await users
+        .find({ type: "resident", hostel: options.hostel }, { projection: { password: 0 } })
+        .sort({ room: 1, name: 1 })
+        // uncomment them if the state performance is so bad
+        // .skip((options.page - 1) * ITEMS_PER_PAGE)
+        // .limit(ITEMS_PER_PAGE)
+        .toArray();
+
+    return residents.map((resident) => ({ ...resident, _id: resident._id.toString() }));
 }

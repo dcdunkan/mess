@@ -86,9 +86,9 @@ function CalendarWeek({
 
         let isPastModifiableTime =
             // is yesterday
-            isPastDay(thisDate, today) ||
+            isPastDay(thisDate, today, { includeToday: true }) ||
             // or is tomorrow, and if today's time is past 22:00, then nope
-            (today.getHours() >= 22 && isPastDay(thisDate, tomorrow));
+            (today.getHours() >= 22 && isPastDay(thisDate, tomorrow, { includeToday: true }));
 
         const preference = monthlyPreferences.find(
             ({ date }) =>
