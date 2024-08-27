@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import { CookieSessionData, Manager, Resident } from "@/lib/types";
 import Link from "next/link";
@@ -230,10 +231,7 @@ export function CountPage(props: CountPageProps) {
                                                                 key={`day-${i}`}
                                                                 className={clsx(
                                                                     "border-b border-r border-black px-3 py-1 font-semibold min-w-12 max-w-12",
-                                                                    {
-                                                                        "bg-red-300": hasOptedOut,
-                                                                        "bg-green-50": !hasOptedOut,
-                                                                    }
+                                                                    hasOptedOut ? "bg-red-300" : "bg-green-50"
                                                                 )}
                                                             >
                                                                 {hasOptedOut ? (
