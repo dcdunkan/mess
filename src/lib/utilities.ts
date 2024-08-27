@@ -95,19 +95,34 @@ export function organizeDayData({ data }: { day: number; data: MealStatus[] }) {
 
 export function generateCSV(
     residents: Omit<Resident, "password">[],
-    monthlyData: Record<string, number>,
+    monthlyData: Record<string, Record<number, boolean>>,
     monthDays: number
 ) {
+    const daysArray = new Array(monthDays).fill(0);
     return (
-        `Room,Name,Admission No,Days\n` +
+        [
+            // for formatting
+            "Room",
+            "Name",
+            "Admission No",
+            "Days",
+            ...daysArray.map((_, i) => i + 1),
+        ].join(",") +
+        "\n" +
         residents
             .map((resident) =>
                 [
-                    // keep it formatted
                     resident.room,
                     resident.name,
                     resident.admission,
-                    monthDays - (monthlyData[resident._id] ?? 0),
+                    monthDays -
+                        (monthlyData[resident._id] != null
+                            ? Object.values(monthlyData[resident._id]).reduce((p, c) => p + (c ? 1 : 0), 0)
+                            : 0),
+                    ...daysArray.map((_, i) => {
+                        const hasOptedOut = !!monthlyData[resident._id]?.[i + 1];
+                        return hasOptedOut ? 0 : 1;
+                    }),
                 ].join(",")
             )
             .join("\n")

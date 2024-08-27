@@ -9,6 +9,7 @@ import { generateCSV, getMonthInfo } from "@/lib/utilities";
 import { getMonthlyHostelData, getResidentsList, getTotalResidents } from "@/lib/database";
 import toast from "react-hot-toast";
 import { ITEMS_PER_PAGE } from "@/lib/constants";
+import clsx from "clsx";
 
 interface CountPageProps {
     sessionData: CookieSessionData<Manager>;
@@ -38,7 +39,7 @@ export function CountPage(props: CountPageProps) {
 
     const totalPages = useMemo(() => Math.ceil(totalResidents / ITEMS_PER_PAGE), [totalResidents]);
     const [residents, setResidents] = useState<Omit<Resident, "password">[]>([]);
-    const [monthlyData, setMonthlyData] = useState<Record<string, number>>({});
+    const [monthlyData, setMonthlyData] = useState<Record<string, Record<number, boolean>>>({});
 
     useEffect(() => {
         getTotalResidents(selectedHostel)
@@ -67,6 +68,8 @@ export function CountPage(props: CountPageProps) {
             })
             .catch((err) => toast.error("Failed to fetch data."));
     }, [selectedMonth, selectedHostel]);
+
+    const arbitraryArray = useMemo(() => new Array(month.days).fill(0), [month.days]);
 
     return (
         <>
@@ -161,39 +164,92 @@ export function CountPage(props: CountPageProps) {
                 {isLoadingMonthlyData && <div>Loading</div>}
 
                 {!isLoadingMonthlyData && (
-                    <div className="w-full space-y-6">
+                    <div className="space-y-6">
                         <div className="flex justify-between place-items-center">
                             <div>
                                 Showing page <b>{page}</b> of <b>{totalPages}</b>
                             </div>
                             <PageChanger page={page} setPage={setPage} totalPages={totalPages} />
                         </div>
-                        <table className="text-center w-full  table-auto table">
-                            <thead>
-                                <tr>
-                                    <th className="border font-semibold">Room</th>
-                                    <th className="border font-semibold">Name</th>
-                                    <th className="border font-semibold">Admission</th>
-                                    <th className="border font-semibold">Days</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {residents
-                                    .slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
-                                    .map((resident, i) => {
-                                        return (
-                                            <tr key={i}>
-                                                <td className="border p-2">{resident.room}</td>
-                                                <td className="border px-3 py-2 text-left">{resident.name}</td>
-                                                <td className="border p-2">{resident.admission}</td>
-                                                <td className="border p-2">
-                                                    {month.days - (monthlyData[resident._id] ?? 0)}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                            </tbody>
-                        </table>
+                        <div className="overflow-scroll max-h-[85vh]">
+                            <table className="text-center table-fixed table border-separate border-spacing-0">
+                                <thead>
+                                    <tr className="">
+                                        <th className="border-t border-b border-l border-black px-3 py-1 font-semibold sticky top-0 z-10 bg-white">
+                                            Room
+                                        </th>
+                                        <th className="border border-black px-3 py-1 font-semibold sticky top-0 left-0 z-20 bg-white">
+                                            Name
+                                        </th>
+                                        <th className="border-t border-b border-r border-black px-3 py-1 font-semibold sticky top-0 z-10 bg-white">
+                                            Admission
+                                        </th>
+                                        <th className="border-t border-b border-r border-black px-3 py-1 font-semibold sticky top-0 z-10 bg-white">
+                                            Days
+                                        </th>
+                                        {arbitraryArray.map((_, i) => {
+                                            return (
+                                                <th
+                                                    key={`day-${i}`}
+                                                    className="border-t border-b border-r border-black px-3 py-1 font-semibold sticky top-0 z-10 bg-white"
+                                                >
+                                                    {i + 1}
+                                                </th>
+                                            );
+                                        })}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {residents
+                                        .slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+                                        .map((resident, i) => {
+                                            return (
+                                                <tr key={i} className="">
+                                                    <td className="border-b border-l border-black px-3">
+                                                        {resident.room}
+                                                    </td>
+                                                    <td className="border-b border-r border-l border-black px-3 py-2 text-left sticky z-10 left-0 bg-white whitespace-nowrap">
+                                                        {resident.name}
+                                                    </td>
+                                                    <td className="border-b border-r border-black px-3">
+                                                        {resident.admission}
+                                                    </td>
+                                                    <td className="border-b border-r border-black px-3">
+                                                        {month.days -
+                                                            (monthlyData[resident._id] != null
+                                                                ? Object.values(monthlyData[resident._id]).reduce(
+                                                                      (p, c) => p + (c ? 1 : 0),
+                                                                      0
+                                                                  )
+                                                                : 0)}
+                                                    </td>
+                                                    {arbitraryArray.map((_, i) => {
+                                                        const hasOptedOut = !!monthlyData[resident._id]?.[i + 1];
+                                                        return (
+                                                            <td
+                                                                key={`day-${i}`}
+                                                                className={clsx(
+                                                                    "border-b border-r border-black px-3 py-1 font-semibold min-w-12 max-w-12",
+                                                                    {
+                                                                        "bg-red-300": hasOptedOut,
+                                                                        "bg-green-50": !hasOptedOut,
+                                                                    }
+                                                                )}
+                                                            >
+                                                                {hasOptedOut ? (
+                                                                    <span>&#10005;</span>
+                                                                ) : (
+                                                                    <span>&#10003;</span>
+                                                                )}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            );
+                                        })}
+                                </tbody>
+                            </table>
+                        </div>
                         <PageChanger page={page} setPage={setPage} totalPages={totalPages} />
                     </div>
                 )}
@@ -220,9 +276,7 @@ function PageChanger({
             >
                 <ChevronLeftIcon />
             </button>
-            <div className="text-lg p-2 border">
-                {page} / {totalPages}
-            </div>
+            <div className="text-lg p-2 border min-w-10 text-center">{page}</div>
             <button
                 className="p-2 border rounded disabled:opacity-40 disabled:bg-black/30"
                 disabled={page == totalPages}

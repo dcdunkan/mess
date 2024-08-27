@@ -124,7 +124,7 @@ export async function getNegativeMonthlyCount(filters: {
 export async function getMonthlyHostelData(filters: { date: Omit<SelectedDate, "day">; hostel: string }) {
     await client.connect();
     const monthlyRecordedData = await markings
-        .aggregate<{ _id: ObjectId; data: MealStatus[] }>([
+        .aggregate<{ _id: string; data: { day: number; status: MealStatus }[] }>([
             {
                 $match: {
                     "resident.hostel": filters.hostel,
@@ -132,17 +132,23 @@ export async function getMonthlyHostelData(filters: { date: Omit<SelectedDate, "
                     "date.month": filters.date.month,
                 },
             },
-            { $group: { _id: "$resident.id", data: { $push: "$meals" } } },
+            {
+                $group: {
+                    _id: "$resident.id",
+                    data: { $push: { day: "$date.day", status: "$meals" } },
+                },
+            },
         ])
         .toArray();
-    return monthlyRecordedData.reduce((prev, record) => {
-        prev[record._id.toString()] = record.data.reduce((p, c) => p + hasOptedOut(c), 0);
-        return prev;
-    }, {} as Record<string, number>);
-}
 
-function hasOptedOut(status: MealStatus) {
-    return Object.values(status).every((x) => !x) ? 1 : 0;
+    return monthlyRecordedData.reduce((prev, record) => {
+        prev[record._id] = record.data.reduce((p, c) => {
+            // is every meal preference negative?
+            p[c.day] = Object.values(c.status).every((meal) => !meal);
+            return p;
+        }, {} as Record<number, boolean>);
+        return prev;
+    }, {} as Record<string, Record<number, boolean>>);
 }
 
 // TODO: if all the meal preferences are restored, delete the entry.
