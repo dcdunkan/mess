@@ -29,8 +29,8 @@ export default function LoginPage() {
                             />
                         ) : (
                             <input
-                                maxLength={6}
-                                minLength={6}
+                                maxLength={10}
+                                minLength={1}
                                 required
                                 className="border-2 border-black p-2 w-full"
                                 id="login"
