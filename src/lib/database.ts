@@ -73,6 +73,33 @@ export async function updatePassword(details: {
     return true;
 }
 
+export async function resetPassword(details: { admission: string; password: string }) {
+    await client.connect();
+
+    const resident = await users.findOne({
+        type: "resident",
+        admission: details.admission,
+    });
+
+    if (resident == null) {
+        throw new ReasonedError("Couldn't find the resident with that details.");
+    } else if (details.password.length < 6) {
+        throw new ReasonedError("New password too short.");
+    } else if (details.password.length > 32) {
+        throw new ReasonedError("New password too long.");
+    }
+
+    const hashed = await hash(details.password, 10);
+    await users.findOneAndUpdate(
+        {
+            type: "resident",
+            admission: details.admission,
+        },
+        { $set: { password: hashed } }
+    );
+    return true;
+}
+
 export async function getResidentMarkings(
     date: Partial<SelectedDate>,
     resident: { id: string; hostel: string }

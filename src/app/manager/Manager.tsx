@@ -15,7 +15,7 @@ export function ManagerDashboardPage(props: ManagerDashboardPageProps) {
                 <p>You can use this control panel to manage hostels.</p>
             </div>
 
-            <section className="">
+            <section>
                 <div className="text-2xl mb-4">Actions you can perform</div>
 
                 <div className="hover:bg-black/5 rounded transition-all duration-150 ease-in-out">
