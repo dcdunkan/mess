@@ -1,6 +1,6 @@
 "use client";
 
-import { resetPassword, updateHostels } from "@/lib/database";
+import { deleteResident, resetPassword, updateHostels } from "@/lib/database";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import clsx from "clsx";
 import toast from "react-hot-toast";
@@ -35,6 +35,7 @@ export function SuperuserPage(props: { metadata: DatabaseMetadata }) {
 
             <HostelManageSection hostelList={hostelList} setHostelList={setHostelList} />
             <ResetInmatePasswordSection />
+            <DeleteInmateSection />
         </main>
     );
 }
@@ -256,7 +257,7 @@ function ResetInmatePasswordSection() {
                     />
                 </div>
                 <button
-                    disabled={isResettingPassword}
+                    disabled={isResettingPassword || admissionNumber.length === 0 || password.length === 0}
                     className="w-full cursor-pointer hover:bg-white hover:text-black border-black border-2 transition-all duration-200 bg-black text-white font-semibold text-center px-3 py-3 rounded-md disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-400 shadow-inner"
                     onClick={() => {
                         if (isResettingPassword) {
@@ -287,6 +288,55 @@ function ResetInmatePasswordSection() {
                 >
                     {isResettingPassword ? "Resetting..." : "Reset password"}
                 </button>
+            </fieldset>
+        </section>
+    );
+}
+
+function DeleteInmateSection() {
+    const [admissionNumber, setAdmissionNumber] = useState("");
+    const [isDeletingInmate, setIsDeletingInmate] = useState(false);
+
+    return (
+        <section>
+            <fieldset className="border-2 border-black p-4 space-y-2">
+                <legend className="text-xl px-2 font-medium">Delete inmate</legend>
+                <p className="mb-2 px-2">Hostel inmates can be deleted from here.</p>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                        type="number"
+                        className="border-2 rounded-sm w-full px-3 py-2"
+                        placeholder="Admission number"
+                        value={admissionNumber}
+                        onChange={(e) => setAdmissionNumber(e.currentTarget.value)}
+                    />
+                    <button
+                        disabled={isDeletingInmate || admissionNumber.length === 0}
+                        className="w-full cursor-pointer hover:bg-white hover:text-black border-black border-2 transition-all duration-200 bg-black text-white font-semibold text-center px-3 py-3 rounded-md disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-400 shadow-inner"
+                        onClick={() => {
+                            if (isDeletingInmate) {
+                                return toast.error("Already processing...");
+                            } else if (admissionNumber.length < 1) {
+                                return toast.error("Invalid admission number.");
+                            }
+
+                            setIsDeletingInmate(true);
+
+                            deleteResident({ admission: admissionNumber })
+                                .then(() => {
+                                    toast.success("Deleted inmate successfully");
+                                    setAdmissionNumber("");
+                                })
+                                .catch((err) => {
+                                    toast.error("Couldn't delete the inmate data.");
+                                })
+                                .finally(() => setIsDeletingInmate(false));
+                        }}
+                    >
+                        {isDeletingInmate ? "Deleting..." : "Delete resident"}
+                    </button>
+                </div>
             </fieldset>
         </section>
     );

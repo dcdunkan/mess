@@ -53,6 +53,12 @@ export async function getResident(details: { admission: string; password: string
     return user as WithId<Resident>;
 }
 
+export async function deleteResident(details: { admission: string }) {
+    await client.connect();
+    const user = await users.findOneAndDelete({ type: "resident", admission: details.admission });
+    if (user == null) throw new ReasonedError("Couldn't find a resident with the credentials");
+}
+
 export async function updatePassword(details: {
     admission: string;
     currentPassword: string;
