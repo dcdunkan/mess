@@ -216,14 +216,6 @@ function HostelListItem(props: { hostelList: HostelList; hostel: string; handleA
     );
 }
 
-function isUnacceptableChanges(hostelList: HostelList) {
-    return Object.keys(hostelList).every(
-        (hostel) =>
-            (!hostelList[hostel].isOld && hostelList[hostel].toBeDeleted) ||
-            (hostelList[hostel].isOld && !hostelList[hostel].toBeDeleted)
-    );
-}
-
 function ResetInmatePasswordSection() {
     const [admissionNumber, setAdmissionNumber] = useState("");
     const [password, setPassword] = useState("");
@@ -297,5 +289,13 @@ function ResetInmatePasswordSection() {
                 </button>
             </fieldset>
         </section>
+    );
+}
+
+function isUnacceptableChanges(hostelList: HostelList) {
+    return Object.keys(hostelList).every(
+        (hostel) =>
+            (!hostelList[hostel].isOld && hostelList[hostel].toBeDeleted) ||
+            (hostelList[hostel].isOld && !hostelList[hostel].toBeDeleted)
     );
 }
