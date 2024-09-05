@@ -1,6 +1,6 @@
 "use server";
 
-import { MongoClient, ObjectId, WithId } from "mongodb";
+import { MongoClient, WithId } from "mongodb";
 import {
     Resident,
     SelectedDate,
@@ -53,10 +53,34 @@ export async function getResident(details: { admission: string; password: string
     return user as WithId<Resident>;
 }
 
+export async function addResident(resident: Omit<Resident, "_id">) {
+    await client.connect();
+    if ((await users.findOne({ admission: resident.admission })) != null) {
+        throw new ReasonedError("Resident with the same admission number already exists");
+    }
+    try {
+        const hashedPassword = await hash(resident.password, 10);
+        await users.insertOne({
+            // @ts-expect-error gotta fix this later.
+            _id: resident?._id || undefined,
+            type: "resident",
+            name: resident.name,
+            room: resident.room,
+            admission: resident.admission,
+            password: hashedPassword,
+            hostel: resident.hostel,
+        });
+    } catch (error) {
+        console.error(error);
+        throw new ReasonedError("Server error: failed to register resident");
+    }
+}
+
 export async function deleteResident(details: { admission: string }) {
     await client.connect();
     const user = await users.findOneAndDelete({ type: "resident", admission: details.admission });
     if (user == null) throw new ReasonedError("Couldn't find a resident with the credentials");
+    // await markings.deleteMany({ "resident.admission": details.admission });
 }
 
 export async function updatePassword(details: {

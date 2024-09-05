@@ -128,3 +128,41 @@ export function generateCSV(
             .join("\n")
     );
 }
+
+export function validateResidentInput(
+    fields: {
+        name?: string;
+        admission?: string;
+        hostel?: string;
+        room?: string;
+    },
+    options: { hostels: Record<string, string> }
+) {
+    const errors: string[] = [];
+    if (typeof fields.name !== "string" || fields.name.trim().length == 0) {
+        errors.push("Invalid name");
+    }
+    if (
+        typeof fields.admission !== "string" ||
+        fields.admission.length < 3 ||
+        fields.admission.length > 32 ||
+        isNaN(Number.parseInt(fields.admission)) ||
+        !/^[0-9]+$/.test(fields.admission)
+    ) {
+        errors.push("Invalid admission number");
+    }
+    if (fields.hostel == null || !(fields.hostel in options.hostels)) {
+        errors.push("Invalid hostel name");
+    }
+    if (
+        fields.room == null ||
+        typeof fields.room !== "string" ||
+        fields.room.length > 10 ||
+        fields.room.length < 2 ||
+        !/\d/.test(fields.room)
+    ) {
+        errors.push("Invalid room number");
+    }
+
+    return { ok: errors.length == 0, errors };
+}

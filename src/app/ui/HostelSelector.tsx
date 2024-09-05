@@ -11,7 +11,7 @@ export function HostelSelector(props: HostelSelectorProps) {
         <select
             defaultValue={"null"}
             required
-            className="border-2 bg-inherit border-black p-2.5 w-full disabled:bg-gray-200 disabled:text-gray-500"
+            className="border-2 bg-inherit p-2.5 w-full disabled:bg-gray-200 disabled:text-gray-500"
             id="hostel"
             name="hostel"
             onChange={props.onChange}

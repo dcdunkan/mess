@@ -1,6 +1,6 @@
 "use server";
 
-import { getResident, updatePassword } from "@/lib/database";
+import { getResident, updatePassword, addResident } from "@/lib/database";
 import { Manager, Resident, Superuser, UserType } from "@/lib/types";
 import { WEEK } from "@/lib/constants";
 import { cookies } from "next/headers";
@@ -123,5 +123,46 @@ export async function changePassword(_: { success: boolean; message: string }, f
             return { success: false, message: error.reason };
         }
         return { success: false, message: "Something went wrong." };
+    }
+}
+
+export async function addResidentFormHandler(_: unknown, formData: FormData) {
+    try {
+        const session = await getSessionData<Superuser>();
+        if (session == null || session.user.type != "superuser") {
+            throw new ReasonedError("Invalid session");
+        }
+
+        const name = formData.get("full-name")?.toString();
+        const admission = formData.get("admission-no")?.toString();
+        const hostel = formData.get("hostel")?.toString();
+        const room = formData.get("room")?.toString();
+
+        if (
+            name == null ||
+            admission == null ||
+            hostel == null ||
+            room == null ||
+            name.length < 2 ||
+            admission.length < 2 ||
+            hostel.length < 2 ||
+            room.length < 2
+        ) {
+            throw new ReasonedError("Invalid form data");
+        }
+        await addResident({
+            type: "resident",
+            admission: admission,
+            hostel: hostel,
+            name: name,
+            room: room,
+            password: admission,
+        });
+        return { ok: true };
+    } catch (error) {
+        if (error instanceof ReasonedError) {
+            return { ok: false, error: error.reason };
+        }
+        throw error;
     }
 }

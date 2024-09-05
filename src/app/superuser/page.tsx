@@ -15,6 +15,7 @@ export default async function Page() {
     if (sessionData.user.type !== "superuser") {
         redirect(userRedirectPath(sessionData.user.type));
     }
+
     const metadata = await getMetadata();
     return <SuperuserPage metadata={metadata} />;
 }

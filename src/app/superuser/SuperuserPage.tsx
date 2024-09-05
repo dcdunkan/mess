@@ -1,12 +1,16 @@
 "use client";
 
 import { deleteResident, resetPassword, updateHostels } from "@/lib/database";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import { DatabaseMetadata } from "@/lib/types";
+import { useFormState, useFormStatus } from "react-dom";
+import { addResidentFormHandler } from "@/form-handlers";
+import { HostelSelector } from "../ui/HostelSelector";
+import { validateResidentInput } from "@/lib/utilities";
 
-type HostelList = Record<
+type HostelListData = Record<
     string,
     {
         name: string;
@@ -16,12 +20,12 @@ type HostelList = Record<
 >;
 
 export function SuperuserPage(props: { metadata: DatabaseMetadata }) {
-    const [hostelList, setHostelList] = useState<HostelList>(
+    const [hostelList, setHostelList] = useState<HostelListData>(
         Object.keys(props.metadata.hostels).reduce((prev, key) => {
             return {
                 ...prev,
                 [key]: { name: props.metadata.hostels[key], isOld: true, toBeDeleted: false },
-            } as HostelList;
+            } as HostelListData;
         }, {})
     );
 
@@ -34,13 +38,20 @@ export function SuperuserPage(props: { metadata: DatabaseMetadata }) {
             </div>
 
             <HostelManageSection hostelList={hostelList} setHostelList={setHostelList} />
+
             <ResetInmatePasswordSection />
+
+            <AddInmateSection hostels={props.metadata.hostels} />
+
             <DeleteInmateSection />
         </main>
     );
 }
 
-function HostelManageSection(props: { hostelList: HostelList; setHostelList: Dispatch<SetStateAction<HostelList>> }) {
+function HostelManageSection(props: {
+    hostelList: HostelListData;
+    setHostelList: Dispatch<SetStateAction<HostelListData>>;
+}) {
     const [hostelInputName, setHostelInputName] = useState("");
     const [hostelInputId, setHostelInputId] = useState("");
 
@@ -76,7 +87,7 @@ function HostelManageSection(props: { hostelList: HostelList; setHostelList: Dis
                                                             ? !props.hostelList[key].toBeDeleted
                                                             : props.hostelList[key].toBeDeleted,
                                                 },
-                                            } as HostelList;
+                                            } as HostelListData;
                                         }, {})
                                     );
                                 }}
@@ -148,8 +159,8 @@ function HostelManageSection(props: { hostelList: HostelList; setHostelList: Dis
                                             isOld: true,
                                             toBeDeleted: false,
                                         },
-                                    } as HostelList;
-                                }, {} as HostelList);
+                                    } as HostelListData;
+                                }, {} as HostelListData);
 
                             updateHostels(
                                 Object.keys(updated).reduce((prev, key) => {
@@ -175,7 +186,7 @@ function HostelManageSection(props: { hostelList: HostelList; setHostelList: Dis
     );
 }
 
-function HostelList(props: { hostelList: HostelList; handleActionButton: (hostel: string) => void }) {
+function HostelList(props: { hostelList: HostelListData; handleActionButton: (hostel: string) => void }) {
     return (
         <ul className="list-inside">
             {Object.keys(props.hostelList).map((hostel) => {
@@ -192,7 +203,7 @@ function HostelList(props: { hostelList: HostelList; handleActionButton: (hostel
     );
 }
 
-function HostelListItem(props: { hostelList: HostelList; hostel: string; handleActionButton: () => void }) {
+function HostelListItem(props: { hostelList: HostelListData; hostel: string; handleActionButton: () => void }) {
     return (
         <li className="list-item w-full rounded-md" key={props.hostel}>
             <div className="flex justify-between gap-2 py-1">
@@ -293,6 +304,122 @@ function ResetInmatePasswordSection() {
     );
 }
 
+function AddInmateSection(props: { hostels: Record<string, string> }) {
+    const formElement = useRef<HTMLFormElement>(null);
+    const [status, dispatch] = useFormState(addResidentFormHandler, { ok: false });
+    const [validationErrors, setValidationErrors] = useState<string[]>([]);
+    const { pending } = useFormStatus();
+
+    function revalidateFields() {
+        const form = formElement.current;
+        if (form == null) return;
+
+        const formData = new FormData(form);
+        const name = formData.get("full-name")?.toString(),
+            admission = formData.get("admission-no")?.toString(),
+            hostel = formData.get("hostel")?.toString(),
+            room = formData.get("room")?.toString();
+
+        const validated = validateResidentInput({ name, admission, hostel, room }, { hostels: props.hostels });
+        setValidationErrors(validated.errors);
+    }
+
+    useEffect(() => {
+        if (status.ok) {
+            formElement.current?.reset();
+            toast.success("Registered successfully!");
+        }
+    }, [status]);
+
+    return (
+        <section>
+            <fieldset className="border-2 border-black p-4 space-y-2">
+                <legend className="text-xl px-2 font-medium">Register resident</legend>
+
+                <p className="mb-2 px-2">Hostel inmates can be deleted from here.</p>
+
+                <form className="grid gap-3" autoComplete="off" ref={formElement} action={dispatch}>
+                    <div>
+                        <input
+                            className="border-2 rounded-sm w-full px-3 py-2"
+                            id="full-name"
+                            name="full-name"
+                            type="text"
+                            placeholder="Name"
+                            required
+                            onChange={revalidateFields}
+                        />
+                    </div>
+
+                    <div>
+                        <input
+                            maxLength={8}
+                            minLength={2}
+                            required
+                            className="border-2 rounded-sm w-full px-3 py-2"
+                            id="admission-no"
+                            name="admission-no"
+                            type="number"
+                            placeholder="Admission number"
+                            onChange={revalidateFields}
+                        />
+                    </div>
+
+                    <div>
+                        <HostelSelector onChange={revalidateFields} hostels={props.hostels} disabled={false} />
+                    </div>
+
+                    <div>
+                        <input
+                            maxLength={8}
+                            minLength={2}
+                            required
+                            className="border-2 rounded-sm w-full px-3 py-2"
+                            id="room"
+                            name="room"
+                            type="text"
+                            placeholder="Room"
+                            onChange={revalidateFields}
+                        />
+                    </div>
+
+                    {!status.ok && <p className="font-bold text-red-700">{status.error}</p>}
+
+                    {validationErrors.length > 0 && (
+                        <ul className="list-disc list-inside text-red-800">
+                            {validationErrors.map((problem, i) => {
+                                return (
+                                    <li key={i} className="list-item">
+                                        {problem}
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+
+                    <button
+                        className="w-full cursor-pointer hover:bg-white hover:text-black border-black border-2 transition-all duration-200 bg-black text-white font-semibold text-center px-3 py-3 rounded-md disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-400 shadow-inner"
+                        disabled={pending || validationErrors.length != 0}
+                        aria-disabled={pending || validationErrors.length != 0}
+                        onClick={
+                            pending
+                                ? () => {}
+                                : (event) => {
+                                      revalidateFields();
+                                      if (validationErrors.length != 0) {
+                                          event.preventDefault();
+                                      }
+                                  }
+                        }
+                    >
+                        {pending ? "Registering..." : "Register inmate"}
+                    </button>
+                </form>
+            </fieldset>
+        </section>
+    );
+}
+
 function DeleteInmateSection() {
     const [admissionNumber, setAdmissionNumber] = useState("");
     const [isDeletingInmate, setIsDeletingInmate] = useState(false);
@@ -302,6 +429,10 @@ function DeleteInmateSection() {
             <fieldset className="border-2 border-black p-4 space-y-2">
                 <legend className="text-xl px-2 font-medium">Delete inmate</legend>
                 <p className="mb-2 px-2">Hostel inmates can be deleted from here.</p>
+
+                <p className="mb-2 p-4 border-2 text-white border-red-950 rounded bg-red-600">
+                    <b>WARNING</b>: This will also delete the preference data related to the inmate.
+                </p>
 
                 <div className="flex flex-col sm:flex-row gap-2">
                     <input
@@ -342,7 +473,7 @@ function DeleteInmateSection() {
     );
 }
 
-function isUnacceptableChanges(hostelList: HostelList) {
+function isUnacceptableChanges(hostelList: HostelListData) {
     return Object.keys(hostelList).every(
         (hostel) =>
             (!hostelList[hostel].isOld && hostelList[hostel].toBeDeleted) ||
