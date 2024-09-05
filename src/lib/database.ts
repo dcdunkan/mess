@@ -79,8 +79,9 @@ export async function addResident(resident: Omit<Resident, "_id">) {
 export async function deleteResident(details: { admission: string }) {
     await client.connect();
     const user = await users.findOneAndDelete({ type: "resident", admission: details.admission });
-    if (user == null) throw new ReasonedError("Couldn't find a resident with the credentials");
-    // await markings.deleteMany({ "resident.admission": details.admission });
+    if (user == null) return { ok: false, message: "Couldn't find inmate with the credentials" };
+    await markings.deleteMany({ "resident.id": user._id.toString() });
+    return { ok: true, message: "Deleted inmate successfully" };
 }
 
 export async function updatePassword(details: {
